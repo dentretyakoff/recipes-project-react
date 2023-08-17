@@ -7,7 +7,7 @@ User = get_user_model()
 class Recipe(models.Model):
     "Модель рецептов."
     author = models.ForeignKey(User,
-                               on_delete=models.SET_NULL,
+                               on_delete=models.CASCADE,
                                related_name='recipes',
                                verbose_name='Автор рецепта')
     name = models.CharField('Название рецепта', max_length=200)
@@ -38,7 +38,7 @@ class Ingredient(models.Model):
         return self.name
 
 
-class RecipeTag(models.Model):
+class Recipe_Tag(models.Model):
     "Связь рецептов с тегами."
     recipe = models.ForeignKey('Recipe',
                                on_delete=models.CASCADE,
@@ -50,7 +50,7 @@ class RecipeTag(models.Model):
                             verbose_name='Тег')
 
 
-class RecipeIngredient(models.Model):
+class Recipe_Ingredient(models.Model):
     "Связь рецептов с ингредиентами."
     recipe = models.ForeignKey('Recipe',
                                on_delete=models.CASCADE,
@@ -71,19 +71,19 @@ class Favorite(models.Model):
                                on_delete=models.CASCADE,
                                related_name='favorites',
                                verbose_name='Рецепт')
-    user = models.ForeignKey('User',
+    user = models.ForeignKey(User,
                              on_delete=models.CASCADE,
                              related_name='favorites',
                              verbose_name='Пользователь')
 
 
-class ShoppingCart(models.Model):
+class Shopping_Cart(models.Model):
     "Список покупок."
     recipe = models.ForeignKey('Recipe',
                                on_delete=models.CASCADE,
                                related_name='shopping_cart',
                                verbose_name='Рецепт')
-    user = models.ForeignKey('User',
+    user = models.ForeignKey(User,
                              on_delete=models.CASCADE,
                              related_name='shopping_cart',
                              verbose_name='Пользователь')
