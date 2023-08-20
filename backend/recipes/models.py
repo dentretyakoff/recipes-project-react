@@ -8,7 +8,6 @@ class Tag(models.Model):
     name = models.CharField('Тег', max_length=200)
     color = models.CharField('Цвет тега', max_length=7)
     slug = models.SlugField(unique=True)
-    recipes = models.ManyToManyField('Recipe', through='Recipe_Tag')
 
     def _str_(self):
         return self.name
@@ -18,7 +17,6 @@ class Ingredient(models.Model):
     "Модель ингредиентов."
     name = models.CharField('Тег', max_length=200)
     measurement_unit = models.CharField('Единица измерения', max_length=200)
-    recipes = models.ManyToManyField('Recipe', through='Recipe_Ingredient')
 
     def _str_(self):
         return self.name
@@ -59,11 +57,9 @@ class Recipe_Ingredient(models.Model):
                                verbose_name='Рецепт')
     ingredient = models.ForeignKey('Ingredient',
                                    on_delete=models.CASCADE,
-                                   related_name='amount',
+                                   related_name='recipe_igredient',
                                    verbose_name='Ингредиент')
-    amount = models.DecimalField('Колчичество',
-                                 max_digits=5,
-                                 decimal_places=2)
+    amount = models.IntegerField('Колчичество')
 
 
 class Favorite(models.Model):
@@ -82,9 +78,7 @@ class Shopping_Cart(models.Model):
     "Список покупок."
     recipe = models.ForeignKey('Recipe',
                                on_delete=models.CASCADE,
-                               related_name='shopping_cart',
                                verbose_name='Рецепт')
     user = models.ForeignKey(User,
                              on_delete=models.CASCADE,
-                             related_name='shopping_cart',
                              verbose_name='Пользователь')
