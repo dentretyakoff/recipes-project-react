@@ -1,5 +1,6 @@
 from django.shortcuts import get_object_or_404
-from rest_framework import mixins, viewsets
+from rest_framework import mixins, status, viewsets
+from rest_framework.response import Response
 
 from recipes.models import (Tag, Recipe, Ingredient,  # isort: skip
                             Shopping_Cart)  # isort: skip
@@ -33,13 +34,41 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
 
 class Shopping_CartViewSet(viewsets.ModelViewSet):
-    """Добавление рецепта в список покупок."""
+    """Добавление/удаление рецепта в списке покупок."""
     queryset = Shopping_Cart.objects.all()
     serializer_class = Shopping_CartSerializer
     http_method_names = ['post', 'delete']
 
     def perform_create(self, serializer):
         recipe = get_object_or_404(Recipe, id=self.kwargs.get('recipe_id'))
+
         # !Юзера нужно получать из request
         user = User.objects.get(username='follower')
         serializer.save(recipe=recipe, user=user)
+
+    def perform_destroy(self, instance):
+        print(instance)
+
+
+
+
+    # def post(self, request):
+    #     serializer = Shopping_CartSerializer()
+    #     serializer.is_valid(raise_exception=True)
+
+    #     # !Юзера нужно получать из request
+    #     user = User.objects.get(username='follower')
+    #     recipe = get_object_or_404(Recipe, id=self.kwargs.get('recipe_id'))
+
+    #     shopping_cart = Shopping_Cart.objects.create(recipe=recipe, user=user)
+
+    #     request = self.context.get('request')
+    #     image_url = request.build_absolute_uri(shopping_cart.recipe.image.url)
+
+    #     return Response(
+    #         {
+    #             'id': shopping_cart.recipe.id,
+    #             'name': shopping_cart.recipe.name,
+    #             'image': image_url,
+    #             'cooking_time': shopping_cart.recipe.cooking_time
+    #         }, status=status.HTTP_201_CREATED)

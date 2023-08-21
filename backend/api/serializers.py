@@ -30,14 +30,6 @@ class IngredientSerializer(serializers.ModelSerializer):
         model = Ingredient
         fields = '__all__'
 
-    def to_representation(self, instance):
-        return {
-            'id': instance.id,
-            'name': instance.name,
-            'measurement_unit': instance.measurement_unit,
-            'amount': instance.recipe_igredient.first().amount
-        }
-
     def to_internal_value(self, data):
         return data
 
@@ -83,6 +75,15 @@ class RecipetSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = '__all__'
+
+    def to_representation(self, recipe):
+        """Добавляем количество каждому ингредиенту."""
+        recipe_ingredients = recipe.recipe_ingredient_set.all()
+        data = super().to_representation(recipe)
+        for ingredient in data['ingredients']:
+            ingredient['amount'] = recipe_ingredients.get(
+                ingredient_id=ingredient['id']).amount
+        return data
 
     # !Дописать
     def get_is_favorited(self, recipe: Recipe) -> bool:
@@ -153,9 +154,15 @@ class Shopping_CartSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
     def validate(self, data):
-        recipe = get_object_or_404(Recipe, id=self.kwargs.get('recipe_id'))
         # !Юзера нужно получать из request
         user = User.objects.get(username='follower')
+        recipe_id = self.context['view'].kwargs.get('recipe_id')
+        http_method = self.context['request'].method
+        recipe_exist = user.shopping_carts.filter(recipe=recipe_id).exists()
+
+        if http_method == 'POST' and recipe_exist:
+            raise serializers.ValidationError(
+                {'errors': 'Рецепт уже есть в списке.'})
 
         return data
 
