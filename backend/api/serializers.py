@@ -156,25 +156,26 @@ class Shopping_CartSerializer(serializers.ModelSerializer):
     def validate(self, data):
         # !Юзера нужно получать из request
         user = User.objects.get(username='follower')
-        recipe_id = self.context['view'].kwargs.get('recipe_id')
+        recipe_id = self.context['view'].kwargs['recipe_id']
         http_method = self.context['request'].method
-        recipe_exist = user.shopping_carts.filter(recipe=recipe_id).exists()
+        recipe_exist = user.shopping_carts.filter(
+            recipe=recipe_id).exists()
 
         if http_method == 'POST' and recipe_exist:
             raise serializers.ValidationError(
-                {'errors': 'Рецепт уже есть в списке.'})
+                {'errors': 'Рецепт уже есть в списке покупок.'})
 
         return data
 
-    def to_representation(self, shopping_cart):
-        request = self.context.get('request')
-        image_url = request.build_absolute_uri(shopping_cart.recipe.image.url)
-        return {
-            'id': shopping_cart.recipe.id,
-            'name': shopping_cart.recipe.name,
-            'image': image_url,
-            'cooking_time': shopping_cart.recipe.cooking_time
-        }
+    # def to_representation(self, shopping_cart):
+    #     request = self.context.get('request')
+    #     image_url = request.build_absolute_uri(shopping_cart.recipe.image.url)
+    #     return {
+    #         'id': shopping_cart.recipe.id,
+    #         'name': shopping_cart.recipe.name,
+    #         'image': image_url,
+    #         'cooking_time': shopping_cart.recipe.cooking_time
+    #     }
 
-    def to_internal_value(self, data):
-        return data
+    # def to_internal_value(self, data):
+    #     return data
