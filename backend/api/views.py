@@ -1,6 +1,7 @@
 from django.shortcuts import get_object_or_404
 from rest_framework import mixins, status, viewsets
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from recipes.models import (Tag, Recipe, Ingredient,  # isort: skip
                             Shopping_Cart)  # isort: skip
@@ -33,32 +34,33 @@ class RecipeViewSet(viewsets.ModelViewSet):
     http_method_names = ['get', 'post', 'patch', 'delete']
 
 
-class Shopping_CartViewSet(viewsets.ModelViewSet):
+class Shopping_CartViewSet(mixins.CreateModelMixin,
+                           mixins.DestroyModelMixin,
+                           viewsets.GenericViewSet):
     """Добавление/удаление рецепта в списке покупок."""
     queryset = Shopping_Cart.objects.all()
     serializer_class = Shopping_CartSerializer
-    http_method_names = ['post', 'delete']
+    # http_method_names = ['post', 'delete']
 
     def perform_create(self, serializer):
-        recipe = get_object_or_404(Recipe, id=self.kwargs.get('recipe_id'))
-
+        # recipe = get_object_or_404(Recipe, id=self.kwargs.get('recipe_id'))
+        print(serializer)
         # !Юзера нужно получать из request
         user = User.objects.get(username='follower')
-        serializer.save(recipe=recipe, user=user)
+        serializer.save(user=user)
 
-    def perform_destroy(self, instance):
-        print(instance)
-
-
-
+    def get_object(self):
+        return get_object_or_404(Recipe,
+                                 id=self.kwargs.get('recipe_id'))
 
     # def post(self, request):
     #     serializer = Shopping_CartSerializer()
     #     serializer.is_valid(raise_exception=True)
+    #     print(serializer)
 
     #     # !Юзера нужно получать из request
     #     user = User.objects.get(username='follower')
-    #     recipe = get_object_or_404(Recipe, id=self.kwargs.get('recipe_id'))
+    #     # recipe = get_object_or_404(Recipe, id=self.kwargs.get('recipe_id'))
 
     #     shopping_cart = Shopping_Cart.objects.create(recipe=recipe, user=user)
 

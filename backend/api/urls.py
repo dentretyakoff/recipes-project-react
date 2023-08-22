@@ -17,5 +17,7 @@ router.register(r'recipes/(?P<recipe_id>\d+)/shopping_cart',
 
 urlpatterns = [
     # path(f'{API_VERSION}/', include('djoser.urls.jwt')),
+    # path('recipes/<int:recipe_id>/shopping_cart/',
+    #      Shopping_CartViewSet.as_view()),
     path('', include(router.urls)),
 ]
