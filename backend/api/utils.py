@@ -1,13 +1,17 @@
+from django.http import HttpResponse
+from datetime import datetime
 from django.shortcuts import get_object_or_404
-from recipes.models import (Ingredient, Recipe, Recipe_Ingredient, Recipe_Tag,
-                            Tag)
+
+from recipes.models import (Ingredient, Recipe,  # isort: skip
+                            RecipeIngredient,  # isort: skip
+                            RecipeTag, Tag)  # isort: skip
 
 
 def create_recipe_tag_relation(recipe: Recipe, tags_data: list) -> None:
     """Добавление новых тегов рецептам."""
     for tag_id in tags_data:
         tag = get_object_or_404(Tag, id=tag_id)
-        Recipe_Tag.objects.get_or_create(recipe=recipe, tag=tag)
+        RecipeTag.objects.get_or_create(recipe=recipe, tag=tag)
 
 
 def create_recipe_ingredient_relation(
@@ -17,7 +21,21 @@ def create_recipe_ingredient_relation(
         ingredient = get_object_or_404(Ingredient,
                                        id=ingredient_data.get('id'))
         amount = ingredient_data.get('amount')
-        Recipe_Ingredient.objects.update_or_create(
+        RecipeIngredient.objects.update_or_create(
             recipe=recipe,
             ingredient=ingredient,
             defaults={'amount': amount})
+
+
+def make_file(data):
+    # Создаем временный объект для PDF-файла
+    response = HttpResponse(content_type='text/plan')
+    response['Content-Disposition'] = 'attachment; filename="ingredients.txt"'
+    cur_datetime = datetime.now().strftime('%d-%m-%Y %H:%M:%S')
+
+    response.write(f'Foodgram список ингредиентов.\t{cur_datetime}\n')
+    for key, value in data.items():
+        response.write(
+            f'{key}:\t{value}\n')
+
+    return response

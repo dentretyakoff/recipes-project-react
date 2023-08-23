@@ -32,15 +32,15 @@ class Recipe(models.Model):
     image = models.ImageField('Картинка', upload_to='recipes/')
     text = models.TextField('Текстовое описание блюда')
     cooking_time = models.IntegerField('Время приготовления')
-    tags = models.ManyToManyField(Tag, through='Recipe_Tag')
+    tags = models.ManyToManyField(Tag, through='RecipeTag')
     ingredients = models.ManyToManyField(
-        Ingredient, through='Recipe_Ingredient')
+        Ingredient, through='RecipeIngredient')
 
     def _str_(self):
         return self.name
 
 
-class Recipe_Tag(models.Model):
+class RecipeTag(models.Model):
     "Связь рецептов с тегами."
     recipe = models.ForeignKey('Recipe',
                                on_delete=models.CASCADE,
@@ -50,10 +50,11 @@ class Recipe_Tag(models.Model):
                             verbose_name='Тег')
 
 
-class Recipe_Ingredient(models.Model):
+class RecipeIngredient(models.Model):
     "Связь рецептов с ингредиентами."
     recipe = models.ForeignKey('Recipe',
                                on_delete=models.CASCADE,
+                               related_name='recipe_igredient',
                                verbose_name='Рецепт')
     ingredient = models.ForeignKey('Ingredient',
                                    on_delete=models.CASCADE,
@@ -74,7 +75,7 @@ class Favorite(models.Model):
                              verbose_name='Пользователь')
 
 
-class Shopping_Cart(models.Model):
+class ShoppingCart(models.Model):
     "Список покупок."
     recipe = models.ForeignKey('Recipe',
                                on_delete=models.CASCADE,
@@ -84,3 +85,9 @@ class Shopping_Cart(models.Model):
                              on_delete=models.CASCADE,
                              related_name='shopping_carts',
                              verbose_name='Пользователь')
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['recipe', 'user'],
+                                    name='unique_shopping_cart')
+        ]

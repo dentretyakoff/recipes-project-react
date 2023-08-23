@@ -5,8 +5,8 @@ from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
 from recipes.models import (Tag, Recipe, Ingredient,  # isort: skip
-                            Recipe_Ingredient, Recipe_Tag,  # isort: skip
-                            Shopping_Cart)  # isort: skip
+                            RecipeIngredient, RecipeTag,  # isort: skip
+                            ShoppingCart)  # isort: skip
 from users.models import User  # isort: skip
 from .utils import (create_recipe_tag_relation,  # isort: skip
                     create_recipe_ingredient_relation)  # isort: skip
@@ -78,7 +78,7 @@ class RecipetSerializer(serializers.ModelSerializer):
 
     def to_representation(self, recipe):
         """Добавляем количество каждому ингредиенту."""
-        recipe_ingredients = recipe.recipe_ingredient_set.all()
+        recipe_ingredients = recipe.recipeingredient_set.all()
         data = super().to_representation(recipe)
         for ingredient in data['ingredients']:
             ingredient['amount'] = recipe_ingredients.get(
@@ -121,7 +121,7 @@ class RecipetSerializer(serializers.ModelSerializer):
         recipe.save()
 
         # Удаляем лишние теги
-        tags_delete = Recipe_Tag.objects.filter(
+        tags_delete = RecipeTag.objects.filter(
             recipe=recipe).exclude(tag_id__in=tags_data)
         for tag in tags_delete:
             tag.delete()
@@ -130,7 +130,7 @@ class RecipetSerializer(serializers.ModelSerializer):
         create_recipe_tag_relation(recipe, tags_data)
 
         # Удаляем лишние ингредиенты
-        ingredients_delete = Recipe_Ingredient.objects.filter(
+        ingredients_delete = RecipeIngredient.objects.filter(
             recipe=recipe).exclude(ingredient_id__in=[
                 ingredient_id.get('id') for ingredient_id in ingredients_data
             ])
@@ -147,25 +147,25 @@ class FavoriteSerializer(serializers.ModelSerializer):
     """Сериализатор избранных рецептов."""
 
 
-class Shopping_CartSerializer(serializers.ModelSerializer):
-    """Сериализатор избранных рецептов."""
-    class Meta:
-        model = Shopping_Cart
-        fields = '__all__'
+# class Shopping_CartSerializer(serializers.ModelSerializer):
+    # """Сериализатор избранных рецептов."""
+    # class Meta:
+    #     model = ShoppingCart
+    #     fields = '__all__'
 
-    def validate(self, data):
-        # !Юзера нужно получать из request
-        user = User.objects.get(username='follower')
-        recipe_id = self.context['view'].kwargs['recipe_id']
-        http_method = self.context['request'].method
-        recipe_exist = user.shopping_carts.filter(
-            recipe=recipe_id).exists()
+    # def validate(self, data):
+    #     # !Юзера нужно получать из request
+    #     user = User.objects.get(username='follower')
+    #     recipe_id = self.context['view'].kwargs['recipe_id']
+    #     http_method = self.context['request'].method
+    #     recipe_exist = user.shopping_carts.filter(
+    #         recipe=recipe_id).exists()
 
-        if http_method == 'POST' and recipe_exist:
-            raise serializers.ValidationError(
-                {'errors': 'Рецепт уже есть в списке покупок.'})
+    #     if http_method == 'POST' and recipe_exist:
+    #         raise serializers.ValidationError(
+    #             {'errors': 'Рецепт уже есть в списке покупок.'})
 
-        return data
+    #     return data
 
     # def to_representation(self, shopping_cart):
     #     request = self.context.get('request')
