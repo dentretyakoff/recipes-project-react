@@ -1,10 +1,15 @@
-from django.http import HttpResponse
 from datetime import datetime
+
+from django.db import IntegrityError
+from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404
+from rest_framework import status
+from rest_framework.response import Response
 
 from recipes.models import (Ingredient, Recipe,  # isort: skip
                             RecipeIngredient,  # isort: skip
                             RecipeTag, Tag)  # isort: skip
+from users.models import User  # isort: skip
 
 
 def create_recipe_tag_relation(recipe: Recipe, tags_data: list) -> None:
@@ -27,8 +32,7 @@ def create_recipe_ingredient_relation(
             defaults={'amount': amount})
 
 
-def make_file(data):
-    # Создаем временный объект для PDF-файла
+def make_file(data: dict) -> HttpResponse:
     response = HttpResponse(content_type='text/plan')
     response['Content-Disposition'] = 'attachment; filename="ingredients.txt"'
     cur_datetime = datetime.now().strftime('%d-%m-%Y %H:%M:%S')
@@ -39,3 +43,33 @@ def make_file(data):
             f'{key}:\t{value}\n')
 
     return response
+
+
+def add_delete_favorites_or_shopping_carts(request: HttpRequest,
+                                           recipe: Recipe,
+                                           user: User,
+                                           model,
+                                           message: dict) -> Response:
+    # Создание записи
+    if request.method == 'POST':
+        try:
+            model.objects.create(recipe=recipe, user=user)
+            image_url = request.build_absolute_uri(recipe.image.url)
+            return Response({'id': recipe.id,
+                             'name': recipe.name,
+                             'image': image_url,
+                             'cooking_time': recipe.cooking_time},
+                            status=status.HTTP_201_CREATED)
+        except IntegrityError:
+            return Response({'errors': message['post']},
+                            status=status.HTTP_400_BAD_REQUEST)
+
+    # Удаление записи
+    if request.method == 'DELETE':
+        try:
+            obj = model.objects.get(recipe=recipe, user=user)
+            obj.delete()
+            return Response(status=status.HTTP_204_NO_CONTENT)
+        except model.DoesNotExist:
+            return Response({'errors': message['delete']},
+                            status=status.HTTP_404_NOT_FOUND)

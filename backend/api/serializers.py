@@ -1,12 +1,10 @@
 import base64
 
 from django.core.files.base import ContentFile
-from django.shortcuts import get_object_or_404
 from rest_framework import serializers
 
 from recipes.models import (Tag, Recipe, Ingredient,  # isort: skip
-                            RecipeIngredient, RecipeTag,  # isort: skip
-                            ShoppingCart)  # isort: skip
+                            RecipeIngredient, RecipeTag)  # isort: skip
 from users.models import User  # isort: skip
 from .utils import (create_recipe_tag_relation,  # isort: skip
                     create_recipe_ingredient_relation)  # isort: skip
@@ -49,8 +47,10 @@ class AuthorSerializer(serializers.ModelSerializer):
             'is_subscribed')
 
     # !Дописать
-    def get_is_subscribed(self, user: User) -> bool:
-        return False
+    def get_is_subscribed(self, author: User) -> bool:
+        # user = self.context['request'].user
+        user = User.objects.last()
+        return user.follower.filter(author=author).exists()
 
 
 class Base64ImageField(serializers.ImageField):
@@ -78,7 +78,7 @@ class RecipetSerializer(serializers.ModelSerializer):
 
     def to_representation(self, recipe):
         """Добавляем количество каждому ингредиенту."""
-        recipe_ingredients = recipe.recipeingredient_set.all()
+        recipe_ingredients = recipe.recipe_igredient.all()
         data = super().to_representation(recipe)
         for ingredient in data['ingredients']:
             ingredient['amount'] = recipe_ingredients.get(
@@ -87,11 +87,15 @@ class RecipetSerializer(serializers.ModelSerializer):
 
     # !Дописать
     def get_is_favorited(self, recipe: Recipe) -> bool:
-        return False
+        # user = self.context['request'].user
+        user = User.objects.last()
+        return user.favorites.filter(recipe=recipe).exists()
 
     # !Дописать
     def get_is_in_shopping_cart(self, recipe: Recipe) -> bool:
-        return False
+        # user = self.context['request'].user
+        user = User.objects.last()
+        return user.shopping_carts.filter(recipe=recipe).exists()
 
     def create(self, validated_data):
         tags_data = validated_data.pop('tags')
@@ -137,7 +141,7 @@ class RecipetSerializer(serializers.ModelSerializer):
         for ingredient in ingredients_delete:
             ingredient.delete()
 
-        # Создаем связь рецепта с ингредиентами
+        # Добавляем новые ингредиенты
         create_recipe_ingredient_relation(recipe, ingredients_data)
 
         return recipe
@@ -145,37 +149,3 @@ class RecipetSerializer(serializers.ModelSerializer):
 
 class FavoriteSerializer(serializers.ModelSerializer):
     """Сериализатор избранных рецептов."""
-
-
-# class Shopping_CartSerializer(serializers.ModelSerializer):
-    # """Сериализатор избранных рецептов."""
-    # class Meta:
-    #     model = ShoppingCart
-    #     fields = '__all__'
-
-    # def validate(self, data):
-    #     # !Юзера нужно получать из request
-    #     user = User.objects.get(username='follower')
-    #     recipe_id = self.context['view'].kwargs['recipe_id']
-    #     http_method = self.context['request'].method
-    #     recipe_exist = user.shopping_carts.filter(
-    #         recipe=recipe_id).exists()
-
-    #     if http_method == 'POST' and recipe_exist:
-    #         raise serializers.ValidationError(
-    #             {'errors': 'Рецепт уже есть в списке покупок.'})
-
-    #     return data
-
-    # def to_representation(self, shopping_cart):
-    #     request = self.context.get('request')
-    #     image_url = request.build_absolute_uri(shopping_cart.recipe.image.url)
-    #     return {
-    #         'id': shopping_cart.recipe.id,
-    #         'name': shopping_cart.recipe.name,
-    #         'image': image_url,
-    #         'cooking_time': shopping_cart.recipe.cooking_time
-    #     }
-
-    # def to_internal_value(self, data):
-    #     return data
