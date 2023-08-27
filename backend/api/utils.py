@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from django.db import IntegrityError
+from django.db import IntegrityError, models
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import get_object_or_404
 from rest_framework import status
@@ -38,9 +38,9 @@ def make_file(data: dict) -> HttpResponse:
     cur_datetime = datetime.now().strftime('%d-%m-%Y %H:%M:%S')
 
     response.write(f'Foodgram список ингредиентов.\t{cur_datetime}\n')
-    for key, value in data.items():
+    for name, amount in data.items():
         response.write(
-            f'{key}:\t{value}\n')
+            f'{name}:\t{amount}\n')
 
     return response
 
@@ -48,7 +48,7 @@ def make_file(data: dict) -> HttpResponse:
 def add_delete_favorites_or_shopping_carts(request: HttpRequest,
                                            recipe: Recipe,
                                            user: User,
-                                           model,
+                                           model: models.Model,
                                            message: dict) -> Response:
     # Создание записи
     if request.method == 'POST':

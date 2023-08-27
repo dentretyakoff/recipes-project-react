@@ -5,7 +5,7 @@ from rest_framework import serializers
 
 from recipes.models import (Tag, Recipe, Ingredient,  # isort: skip
                             RecipeIngredient, RecipeTag)  # isort: skip
-from users.models import User  # isort: skip
+from users.models import User, Follow  # isort: skip
 from .utils import (create_recipe_tag_relation,  # isort: skip
                     create_recipe_ingredient_relation)  # isort: skip
 
@@ -147,5 +147,16 @@ class RecipetSerializer(serializers.ModelSerializer):
         return recipe
 
 
-class FavoriteSerializer(serializers.ModelSerializer):
-    """Сериализатор избранных рецептов."""
+class RecipetShortSerializer(serializers.ModelSerializer):
+    """Сериализатор рецептов, с ограниченным списком полей."""
+
+    class Meta:
+        model = Recipe
+        fields = ('id', 'name', 'cooking_time', 'image')
+
+
+class UserSerializer(serializers.ModelSerializer):
+    """Сериализатор пользователей."""
+    class Meta:
+        model = User
+        fields = '__all__'
