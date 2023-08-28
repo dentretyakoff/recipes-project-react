@@ -49,7 +49,8 @@ def add_delete_favorites_or_shopping_carts(request: HttpRequest,
                                            recipe: Recipe,
                                            user: User,
                                            model: models.Model,
-                                           message: dict) -> Response:
+                                           message: dict
+                                           ) -> Response:
     # Создание записи
     if request.method == 'POST':
         try:
@@ -73,3 +74,8 @@ def add_delete_favorites_or_shopping_carts(request: HttpRequest,
         except model.DoesNotExist:
             return Response({'errors': message['delete']},
                             status=status.HTTP_404_NOT_FOUND)
+
+
+def get_recipe_short():
+    """Получить рецепт с ограниченным набором полей."""
+    ...

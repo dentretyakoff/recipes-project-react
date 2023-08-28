@@ -47,11 +47,13 @@ class RecipeViewSet(viewsets.ModelViewSet):
         # !Юзера нужно получать из request
         user = User.objects.get(username='follower')
         message = {
-            'post': 'Рецепт уже в избранном.',
-            'delete': 'Рецепт не найден в избранном.'
+            'post': 'Рецепт уже в корзине.',
+            'delete': 'Рецепт не найден в корзине.'
         }
-        return add_delete_favorites_or_shopping_carts(
+
+        response = add_delete_favorites_or_shopping_carts(
             request, recipe, user, ShoppingCart, message)
+        return response
 
     @action(detail=True, methods=['post', 'delete'])
     def favorite(self, request, pk):
@@ -125,9 +127,12 @@ class UserViewSet(viewsets.ModelViewSet):
         if request.method == 'POST':
             try:
                 Follow.objects.create(author=author, user=user)
-                # image_url = request.build_absolute_uri(recipe.image.url)
-                serializer = AuthorSerializer(author)
-                data = serializer.data
+                recipes = RecipetShortSerializer(
+                        author.recipes.all(),
+                        many=True,
+                        context={'request': request}).data
+                data = AuthorSerializer(author).data
+                data['recipes'] = recipes
                 data['recipes_count'] = author.recipes.all().count()
                 return Response(data,
                                 status=status.HTTP_201_CREATED)
