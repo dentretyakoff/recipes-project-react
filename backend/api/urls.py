@@ -10,10 +10,11 @@ router = DefaultRouter()
 router.register('tags', TagListRetrieveViewSet)
 router.register('ingredients', IngredientListRetrieveViewSet)
 router.register('recipes', RecipeViewSet)
-router.register('users', UserViewSet)
+# router.register('users', UserViewSet)
 
 
 urlpatterns = [
-    # path(f'{API_VERSION}/', include('djoser.urls.jwt')),
     path('', include(router.urls)),
+    path('', include('djoser.urls')),
+    path('auth/', include('djoser.urls.authtoken')),
 ]

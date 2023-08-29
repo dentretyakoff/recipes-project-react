@@ -45,37 +45,26 @@ def make_file(data: dict) -> HttpResponse:
     return response
 
 
-def add_delete_favorites_or_shopping_carts(request: HttpRequest,
-                                           recipe: Recipe,
-                                           user: User,
-                                           model: models.Model,
-                                           message: dict
-                                           ) -> Response:
-    # Создание записи
-    if request.method == 'POST':
-        try:
-            model.objects.create(recipe=recipe, user=user)
-            image_url = request.build_absolute_uri(recipe.image.url)
-            return Response({'id': recipe.id,
-                             'name': recipe.name,
-                             'image': image_url,
-                             'cooking_time': recipe.cooking_time},
-                            status=status.HTTP_201_CREATED)
-        except IntegrityError:
-            return Response({'errors': message['post']},
-                            status=status.HTTP_400_BAD_REQUEST)
-
-    # Удаление записи
-    if request.method == 'DELETE':
-        try:
-            obj = model.objects.get(recipe=recipe, user=user)
-            obj.delete()
-            return Response(status=status.HTTP_204_NO_CONTENT)
-        except model.DoesNotExist:
-            return Response({'errors': message['delete']},
-                            status=status.HTTP_404_NOT_FOUND)
+def custom_post(request: HttpRequest, recipe: Recipe, user: User,
+                model: models.Model, message: str) -> Response:
+    try:
+        model.objects.create(recipe=recipe, user=user)
+        image_url = request.build_absolute_uri(recipe.image.url)
+        return Response({'id': recipe.id,
+                         'name': recipe.name,
+                         'image': image_url,
+                         'cooking_time': recipe.cooking_time},
+                        status=status.HTTP_201_CREATED)
+    except IntegrityError:
+        return Response({'errors': message},
+                        status=status.HTTP_400_BAD_REQUEST)
 
 
-def get_recipe_short():
-    """Получить рецепт с ограниченным набором полей."""
-    ...
+def custom_delete(data: dict, model: models.Model, message: str) -> Response:
+    try:
+        obj = model.objects.get(**data)
+        obj.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
+    except model.DoesNotExist:
+        return Response({'errors': message},
+                        status=status.HTTP_404_NOT_FOUND)

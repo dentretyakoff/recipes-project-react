@@ -2,12 +2,14 @@ import base64
 
 from django.core.files.base import ContentFile
 from rest_framework import serializers
+from djoser.serializers import (UserCreateSerializer
+                                as BaseUserCreateSerializer)
 
 from recipes.models import (Tag, Recipe, Ingredient,  # isort: skip
                             RecipeIngredient, RecipeTag)  # isort: skip
-from users.models import User, Follow  # isort: skip
-from .utils import (create_recipe_tag_relation,  # isort: skip
-                    create_recipe_ingredient_relation)  # isort: skip
+from users.models import User  # isort: skip
+from api.utils import (create_recipe_tag_relation,  # isort: skip
+                       create_recipe_ingredient_relation)  # isort: skip
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -32,7 +34,7 @@ class IngredientSerializer(serializers.ModelSerializer):
         return data
 
 
-class AuthorSerializer(serializers.ModelSerializer):
+class UserSerializer(serializers.ModelSerializer):
     """Сериализатор авторов рецептов."""
     is_subscribed = serializers.SerializerMethodField()
 
@@ -53,6 +55,18 @@ class AuthorSerializer(serializers.ModelSerializer):
         return user.follower.filter(author=author).exists()
 
 
+class UserCreateSerializer(BaseUserCreateSerializer):
+    """Сериализатор создания пользователя."""
+    print('aaa')
+
+    class Meta(BaseUserCreateSerializer.Meta):
+        fields = ('email',
+                  'username',
+                  'first_name',
+                  'last_name',
+                  'password')
+
+
 class Base64ImageField(serializers.ImageField):
     def to_internal_value(self, data):
         if isinstance(data, str) and data.startswith('data:image'):
@@ -63,9 +77,9 @@ class Base64ImageField(serializers.ImageField):
         return super().to_internal_value(data)
 
 
-class RecipetSerializer(serializers.ModelSerializer):
+class RecipeSerializer(serializers.ModelSerializer):
     """Сериализатор рецептов."""
-    author = AuthorSerializer(required=False)
+    author = UserSerializer(required=False)
     tags = TagSerializer(many=True)
     ingredients = IngredientSerializer(many=True)
     is_favorited = serializers.SerializerMethodField()
@@ -147,7 +161,7 @@ class RecipetSerializer(serializers.ModelSerializer):
         return recipe
 
 
-class RecipetShortSerializer(serializers.ModelSerializer):
+class RecipeShortSerializer(serializers.ModelSerializer):
     """Сериализатор рецептов, с ограниченным списком полей."""
 
     class Meta:
@@ -155,8 +169,8 @@ class RecipetShortSerializer(serializers.ModelSerializer):
         fields = ('id', 'name', 'cooking_time', 'image')
 
 
-class UserSerializer(serializers.ModelSerializer):
-    """Сериализатор пользователей."""
-    class Meta:
-        model = User
-        fields = '__all__'
+# class UserSerializer(serializers.ModelSerializer):
+#     """Сериализатор пользователей."""
+#     class Meta:
+#         model = User
+#         fields = ('id', 'email', 'username', 'first_name', 'last_name')
