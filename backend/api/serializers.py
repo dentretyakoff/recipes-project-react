@@ -102,21 +102,18 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     # !Дописать
     def get_is_favorited(self, recipe: Recipe) -> bool:
-        # user = self.context['request'].user
-        user = User.objects.last()
+        user = self.context['request'].user
         return user.favorites.filter(recipe=recipe).exists()
 
     # !Дописать
     def get_is_in_shopping_cart(self, recipe: Recipe) -> bool:
-        # user = self.context['request'].user
-        user = User.objects.last()
+        user = self.context['request'].user
         return user.shopping_carts.filter(recipe=recipe).exists()
 
     def create(self, validated_data):
         tags_data = validated_data.pop('tags')
         ingredients_data = validated_data.pop('ingredients')
-        # !Юзера нужно получать из request
-        author = User.objects.first()
+        author = self.context['request'].user
         recipe = Recipe.objects.create(**validated_data, author=author)
 
         # Создаем связь рецепта с тегами

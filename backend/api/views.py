@@ -4,6 +4,7 @@ from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from djoser.views import UserViewSet as DjoserUserViewSet
+from rest_framework.pagination import PageNumberPagination
 
 from recipes.models import (Tag, Recipe, Ingredient,  # isort: skip
                             ShoppingCart, Favorite)  # isort: skip
@@ -22,6 +23,7 @@ class TagListRetrieveViewSet(mixins.ListModelMixin,
     """Получает теги списком или по одному."""
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
+    pagination_class = None
 
 
 class IngredientListRetrieveViewSet(mixins.ListModelMixin,
@@ -30,6 +32,7 @@ class IngredientListRetrieveViewSet(mixins.ListModelMixin,
     """Получает ингердиенты списком или по одному."""
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
+    pagination_class = None
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -103,15 +106,18 @@ class CustomUserViewSet(DjoserUserViewSet):
     Расширяет стандарный UserViewSet из djoser, для работы
     url-ов subscriptions и subscribe.
     """
+
     @action(detail=False)
     def subscriptions(self, request):
         """Список подписок пользователя."""
+        pagination = PageNumberPagination()
         user = request.user
         follows = user.follower.all(
             ).select_related('author'
                              ).prefetch_related('author__recipes')
         authors = [follow.author for follow in follows]
-        data = UserSerializer(authors,
+        page = pagination.paginate_queryset(authors, request)
+        data = UserSerializer(page,
                               many=True,
                               context={'request': request}).data
 
@@ -125,7 +131,7 @@ class CustomUserViewSet(DjoserUserViewSet):
                     author_data['recipes'] = recipes
                     author_data['recipes_count'] = author.recipes.all().count()
 
-        return Response(data, status=status.HTTP_200_OK)
+        return pagination.get_paginated_response(data)
 
     @action(detail=True, methods=['post', 'delete'])
     def subscribe(self, request, id) -> Response:

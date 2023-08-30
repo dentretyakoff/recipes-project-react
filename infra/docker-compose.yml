@@ -1,7 +1,7 @@
 version: '3.3'
 
 volumes:
-  static:
+  static_django:
   media:
 
 
@@ -16,12 +16,13 @@ services:
     build: ../backend/
     env_file: ../.env
     volumes:
-      - static:/backend_static
+      - static_django:/backend_static
       - media:/app/media_files
     command: >
       sh -c "
         python manage.py migrate &&
         python manage.py collectstatic --noinput &&
+        cp -r /app/collected_static/. /backend_static/ &&
         gunicorn --bind 0.0.0.0:8000 foodgram_backend.wsgi"
   nginx:
     image: nginx:1.19.3
@@ -31,3 +32,4 @@ services:
       - ./nginx.conf:/etc/nginx/conf.d/default.conf
       - ../frontend/build:/usr/share/nginx/html/
       - ../docs/:/usr/share/nginx/html/api/docs/
+      - static_django:/backend_static/
