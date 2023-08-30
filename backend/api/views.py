@@ -3,6 +3,7 @@ from django.shortcuts import get_object_or_404
 from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
+from djoser.views import UserViewSet as DjoserUserViewSet
 
 from recipes.models import (Tag, Recipe, Ingredient,  # isort: skip
                             ShoppingCart, Favorite)  # isort: skip
@@ -43,8 +44,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def shopping_cart(self, request, pk) -> Response:
         """Добавляет/удаляет рецепт в корзине."""
         recipe = get_object_or_404(Recipe, id=pk)
-        # !Юзера нужно получать из request
-        user = User.objects.get(username='follower')
+        user = request.user
 
         # Создание записи
         if request.method == 'POST':
@@ -64,8 +64,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def favorite(self, request, pk):
         """Добавляет/удаляет рецепт в избранном."""
         recipe = get_object_or_404(Recipe, id=pk)
-        # !Юзера нужно получать из request
-        user = User.objects.get(username='follower')
+        user = request.user
 
         # Создание записи
         if request.method == 'POST':
@@ -84,8 +83,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     @action(detail=False, methods=['get'])
     def download_shopping_cart(self, request):
         ingr_list = {}
-        # !Юзера нужно получать из request
-        user = User.objects.get(username='follower')
+        user = request.user
         shopping_carts = user.shopping_carts.all().select_related('recipe')
 
         for shopping_cart in shopping_carts:
@@ -100,22 +98,22 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return make_file(ingr_list)
 
 
-class UserViewSet(viewsets.ModelViewSet):
-
-    queryset = User.objects.all()
-    serializer_class = UserSerializer
-    # http_method_names = ['get']
-
+class CustomUserViewSet(DjoserUserViewSet):
+    """
+    Расширяет стандарный UserViewSet из djoser, для работы
+    url-ов subscriptions и subscribe.
+    """
     @action(detail=False)
     def subscriptions(self, request):
         """Список подписок пользователя."""
-        # !Юзера нужно получать из request
-        user = User.objects.get(username='follower')
+        user = request.user
         follows = user.follower.all(
             ).select_related('author'
                              ).prefetch_related('author__recipes')
         authors = [follow.author for follow in follows]
-        data = UserSerializer(authors, many=True).data
+        data = UserSerializer(authors,
+                              many=True,
+                              context={'request': request}).data
 
         for author in authors:
             for author_data in data:
@@ -130,11 +128,11 @@ class UserViewSet(viewsets.ModelViewSet):
         return Response(data, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['post', 'delete'])
-    def subscribe(self, request, pk) -> Response:
+    def subscribe(self, request, id) -> Response:
         """Создает/удаляет подписку на автора."""
-        author = get_object_or_404(User, pk=pk)
-        # !Юзера нужно получать из request
-        user = User.objects.get(username='follower')
+        author = get_object_or_404(User, id=id)
+        user = request.user
+
         # Создание записи
         if request.method == 'POST':
             try:
@@ -143,7 +141,8 @@ class UserViewSet(viewsets.ModelViewSet):
                         author.recipes.all(),
                         many=True,
                         context={'request': request}).data
-                data = UserSerializer(author).data
+                data = UserSerializer(author,
+                                      context={'request': request}).data
                 data['recipes'] = recipes
                 data['recipes_count'] = author.recipes.all().count()
                 return Response(data,
@@ -158,10 +157,3 @@ class UserViewSet(viewsets.ModelViewSet):
             response = custom_delete(data={'author': author, 'user': user},
                                      model=Follow, message=message)
             return response
-            # try:
-            #     obj = Follow.objects.get(author=author, user=user)
-            #     obj.delete()
-            #     return Response(status=status.HTTP_204_NO_CONTENT)
-            # except Follow.DoesNotExist:
-            #     return Response({'errors': 'Нет в подписках.'},
-            #                     status=status.HTTP_404_NOT_FOUND)

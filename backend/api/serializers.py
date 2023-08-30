@@ -2,8 +2,9 @@ import base64
 
 from django.core.files.base import ContentFile
 from rest_framework import serializers
+from django.core.validators import RegexValidator
 from djoser.serializers import (UserCreateSerializer
-                                as BaseUserCreateSerializer)
+                                as DjoserUserCreateSerializer)
 
 from recipes.models import (Tag, Recipe, Ingredient,  # isort: skip
                             RecipeIngredient, RecipeTag)  # isort: skip
@@ -41,30 +42,30 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = (
-            'id',
-            'username',
-            'email',
-            'first_name',
-            'last_name',
-            'is_subscribed')
+            'id', 'username', 'email', 'first_name',
+            'last_name', 'is_subscribed')
 
     # !Дописать
     def get_is_subscribed(self, author: User) -> bool:
-        # user = self.context['request'].user
-        user = User.objects.last()
+        user = self.context['request'].user
         return user.follower.filter(author=author).exists()
 
 
-class UserCreateSerializer(BaseUserCreateSerializer):
+class UserCreateSerializer(DjoserUserCreateSerializer):
     """Сериализатор создания пользователя."""
-    print('aaa')
+    username = serializers.CharField(
+        max_length=150,
+        validators=[RegexValidator(r"^[\w.@+-]+\Z$", "Некорректный формат.")],
+    )
+    email = serializers.EmailField(required=True, max_length=254)
+    first_name = serializers.CharField(required=True, max_length=150)
+    last_name = serializers.CharField(required=True, max_length=150)
 
-    class Meta(BaseUserCreateSerializer.Meta):
-        fields = ('email',
-                  'username',
-                  'first_name',
-                  'last_name',
-                  'password')
+    class Meta:
+        model = User
+        fields = (
+            'id', 'email', 'username', 'first_name',
+            'last_name', 'password')
 
 
 class Base64ImageField(serializers.ImageField):
