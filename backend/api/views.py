@@ -1,6 +1,6 @@
 from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
-from rest_framework import mixins, status, viewsets
+from rest_framework import mixins, status, viewsets, filters
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from djoser.views import UserViewSet as DjoserUserViewSet
@@ -15,6 +15,7 @@ from api.serializers import (TagSerializer, RecipeSerializer,  # isort: skip
 from users.models import User, Follow  # isort: skip
 from api.utils import (make_file,  # isort: skip
                        custom_post, custom_delete)  # isort: skip
+from api.filters import IngredientSearch  # isort: skip
 
 
 class TagListRetrieveViewSet(mixins.ListModelMixin,
@@ -33,6 +34,8 @@ class IngredientListRetrieveViewSet(mixins.ListModelMixin,
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     pagination_class = None
+    filter_backends = (IngredientSearch, filters.OrderingFilter)
+    ordering = ('name',)
 
 
 class RecipeViewSet(viewsets.ModelViewSet):
@@ -42,6 +45,24 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
     http_method_names = ['get', 'post', 'patch', 'delete']
+
+    def get_queryset(self):
+        queryset = Recipe.objects.all()
+        user = self.request.user
+
+        is_in_shopping_cart = self.request.query_params.get(
+            'is_in_shopping_cart')
+        is_favorited = self.request.query_params.get('is_favorited')
+        tags = self.request.query_params.getlist('tags')
+
+        if is_in_shopping_cart is not None:
+            queryset = queryset.filter(shopping_carts__user=user)
+        if is_favorited is not None:
+            queryset = queryset.filter(favorites__user=user)
+        if tags:
+            queryset = queryset.filter(recipe_tag__tag__slug__in=tags)
+
+        return queryset
 
     @action(detail=True, methods=['post', 'delete'])
     def shopping_cart(self, request, pk) -> Response:

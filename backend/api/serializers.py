@@ -100,12 +100,10 @@ class RecipeSerializer(serializers.ModelSerializer):
                 ingredient_id=ingredient['id']).amount
         return data
 
-    # !Дописать
     def get_is_favorited(self, recipe: Recipe) -> bool:
         user = self.context['request'].user
         return user.favorites.filter(recipe=recipe).exists()
 
-    # !Дописать
     def get_is_in_shopping_cart(self, recipe: Recipe) -> bool:
         user = self.context['request'].user
         return user.shopping_carts.filter(recipe=recipe).exists()

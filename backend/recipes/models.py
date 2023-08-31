@@ -44,6 +44,7 @@ class RecipeTag(models.Model):
     "Связь рецептов с тегами."
     recipe = models.ForeignKey('Recipe',
                                on_delete=models.CASCADE,
+                               related_name='recipe_tag',
                                verbose_name='Рецепт')
     tag = models.ForeignKey('Tag',
                             on_delete=models.CASCADE,
