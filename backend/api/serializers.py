@@ -127,7 +127,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         ingredients_data = validated_data.pop('ingredients')
 
         # Обновялем поля рецепта
-        recipe.image = validated_data.get('iamge', recipe.image)
+        recipe.image = validated_data.get('image', recipe.image)
         recipe.name = validated_data.get('name', recipe.name)
         recipe.text = validated_data.get('text', recipe.text)
         recipe.cooking_time = validated_data.get('cooking_time',
@@ -163,10 +163,3 @@ class RecipeShortSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'cooking_time', 'image')
-
-
-# class UserSerializer(serializers.ModelSerializer):
-#     """Сериализатор пользователей."""
-#     class Meta:
-#         model = User
-#         fields = ('id', 'email', 'username', 'first_name', 'last_name')
