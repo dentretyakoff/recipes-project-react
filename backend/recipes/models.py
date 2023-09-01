@@ -9,16 +9,24 @@ class Tag(models.Model):
     color = models.CharField('Цвет тега', max_length=7)
     slug = models.SlugField(unique=True)
 
-    def _str_(self):
+    class Meta:
+        verbose_name = 'Тег'
+        verbose_name_plural = 'Теги'
+
+    def __str__(self):
         return self.name
 
 
 class Ingredient(models.Model):
     "Модель ингредиентов."
-    name = models.CharField('Тег', max_length=200)
+    name = models.CharField('Ингредиент', max_length=200)
     measurement_unit = models.CharField('Единица измерения', max_length=200)
 
-    def _str_(self):
+    class Meta:
+        verbose_name = 'Ингредиент'
+        verbose_name_plural = 'Ингредиенты'
+
+    def __str__(self):
         return self.name
 
 
@@ -32,11 +40,18 @@ class Recipe(models.Model):
     image = models.ImageField('Картинка', upload_to='recipes/')
     text = models.TextField('Текстовое описание блюда')
     cooking_time = models.IntegerField('Время приготовления')
-    tags = models.ManyToManyField(Tag, through='RecipeTag')
-    ingredients = models.ManyToManyField(
-        Ingredient, through='RecipeIngredient')
+    tags = models.ManyToManyField(Tag,
+                                  verbose_name='Теги',
+                                  through='RecipeTag')
+    ingredients = models.ManyToManyField(Ingredient,
+                                         verbose_name='Ингредиенты',
+                                         through='RecipeIngredient')
 
-    def _str_(self):
+    class Meta:
+        verbose_name = 'Рецепт'
+        verbose_name_plural = 'Рецепты'
+
+    def __str__(self):
         return self.name
 
 
@@ -50,6 +65,10 @@ class RecipeTag(models.Model):
                             on_delete=models.CASCADE,
                             verbose_name='Тег')
 
+    class Meta:
+        verbose_name = 'Рецепт - Тег'
+        verbose_name_plural = 'Рецепты - Теги'
+
 
 class RecipeIngredient(models.Model):
     "Связь рецептов с ингредиентами."
@@ -61,7 +80,14 @@ class RecipeIngredient(models.Model):
                                    on_delete=models.CASCADE,
                                    related_name='recipe_igredient',
                                    verbose_name='Ингредиент')
-    amount = models.IntegerField('Колчичество')
+    amount = models.IntegerField('Количество')
+
+    class Meta:
+        verbose_name = 'Рецепт - Ингредиент'
+        verbose_name_plural = 'Рецепты - Ингредиенты'
+
+    def __str__(self):
+        return f'{self.recipe.name} - {self.ingredient.name}'
 
 
 class Favorite(models.Model):
@@ -76,6 +102,8 @@ class Favorite(models.Model):
                              verbose_name='Пользователь')
 
     class Meta:
+        verbose_name = 'Избранный рецепт'
+        verbose_name_plural = 'Избранные рецепты'
         constraints = [
             models.UniqueConstraint(fields=['recipe', 'user'],
                                     name='unique_favorite')
@@ -94,6 +122,8 @@ class ShoppingCart(models.Model):
                              verbose_name='Пользователь')
 
     class Meta:
+        verbose_name = 'Список покупок'
+        verbose_name_plural = 'Списки покупок'
         constraints = [
             models.UniqueConstraint(fields=['recipe', 'user'],
                                     name='unique_shopping_cart')
