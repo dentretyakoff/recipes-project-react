@@ -1,9 +1,10 @@
 from django.contrib import admin
+from import_export.admin import ImportExportModelAdmin
 
-from .models import (Recipe, Tag, Ingredient,
-                     RecipeIngredient, RecipeTag,
-                     Favorite, ShoppingCart)
-from users.models import Follow
+from recipes.models import (Favorite, Ingredient,  # isort: skip
+                            Recipe, RecipeIngredient,  # isort: skip
+                            RecipeTag, ShoppingCart, Tag)  # isort: skip
+from users.models import Follow  # isort: skip
 
 
 class RecipeIngredientInline(admin.TabularInline):
@@ -35,7 +36,8 @@ class TagAdmin(admin.ModelAdmin):
 
 
 @admin.register(Ingredient)
-class IngredientAdmin(admin.ModelAdmin):
+# class IngredientAdmin(admin.ModelAdmin):
+class IngredientAdmin(ImportExportModelAdmin):
     list_display = ('id', 'name', 'measurement_unit')
     list_filter = ('name',)
     ordering = ['name']
