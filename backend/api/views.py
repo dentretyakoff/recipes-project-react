@@ -1,10 +1,10 @@
 from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
-from rest_framework import mixins, status, viewsets, filters
-from rest_framework.decorators import action
-from rest_framework.response import Response
 from djoser.views import UserViewSet as DjoserUserViewSet
+from rest_framework import filters, mixins, status, viewsets
+from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
+from rest_framework.response import Response
 
 from recipes.models import (Tag, Recipe, Ingredient,  # isort: skip
                             ShoppingCart, Favorite)  # isort: skip
