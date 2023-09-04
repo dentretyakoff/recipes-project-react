@@ -5,6 +5,7 @@ from rest_framework import filters, mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.pagination import PageNumberPagination
 from rest_framework.response import Response
+from rest_framework.permissions import IsAuthenticated
 
 from recipes.models import (Tag, Recipe, Ingredient,  # isort: skip
                             ShoppingCart, Favorite)  # isort: skip
@@ -16,6 +17,7 @@ from users.models import User, Follow  # isort: skip
 from api.utils import (make_file,  # isort: skip
                        custom_post, custom_delete)  # isort: skip
 from api.filters import IngredientSearch  # isort: skip
+from api.permissions import ReadOnly  # isort: skip
 
 
 class TagListRetrieveViewSet(mixins.ListModelMixin,
@@ -25,6 +27,7 @@ class TagListRetrieveViewSet(mixins.ListModelMixin,
     queryset = Tag.objects.all()
     serializer_class = TagSerializer
     pagination_class = None
+    permission_classes = [ReadOnly | IsAuthenticated]
 
 
 class IngredientListRetrieveViewSet(mixins.ListModelMixin,
@@ -34,6 +37,7 @@ class IngredientListRetrieveViewSet(mixins.ListModelMixin,
     queryset = Ingredient.objects.all()
     serializer_class = IngredientSerializer
     pagination_class = None
+    permission_classes = [ReadOnly | IsAuthenticated]
     filter_backends = (IngredientSearch, filters.OrderingFilter)
     ordering = ('name',)
 
@@ -45,6 +49,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
     queryset = Recipe.objects.all()
     serializer_class = RecipeSerializer
     http_method_names = ['get', 'post', 'patch', 'delete']
+    permission_classes = [ReadOnly | IsAuthenticated]
+    filter_backends = (filters.OrderingFilter,)
+    ordering = ('-id',)
 
     def get_queryset(self):
         queryset = Recipe.objects.all()
@@ -127,6 +134,7 @@ class CustomUserViewSet(DjoserUserViewSet):
     Расширяет стандарный UserViewSet из djoser, для работы
     url-ов subscriptions и subscribe.
     """
+    # permission_classes = [ReadOnly | IsAuthenticated]
 
     @action(detail=False)
     def subscriptions(self, request):
