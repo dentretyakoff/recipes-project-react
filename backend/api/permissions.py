@@ -8,3 +8,16 @@ class ReadOnly(BasePermission):
 
     def has_object_permission(self, request, view, obj):
         return request.method in SAFE_METHODS
+
+
+class CurrentUserOrAdminOrReadOnly(BasePermission):
+    """Права на эндпоинт пользователей."""
+    def has_permission(self, request, view):
+        user = request.user
+        return request.method in SAFE_METHODS or user.is_staff
+
+    def has_object_permission(self, request, view, obj):
+        user = request.user
+        if type(obj) == type(user) and obj == user:
+            return True
+        return request.method in SAFE_METHODS or user.is_staff

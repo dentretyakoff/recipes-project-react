@@ -13,6 +13,12 @@ class RecipeIngredientInline(admin.TabularInline):
     fields = ('ingredient', 'amount')
 
 
+class RecipeTagInline(admin.TabularInline):
+    model = RecipeTag
+    extra = 0
+    fields = ('tag',)
+
+
 @admin.register(Recipe)
 class RecipeAdmin(admin.ModelAdmin):
     list_display = ('id', 'name', 'image', 'text',
@@ -20,7 +26,7 @@ class RecipeAdmin(admin.ModelAdmin):
     fields = ('name', 'image', 'text', 'cooking_time',
               'author', 'favorite_count')
     readonly_fields = ('favorite_count',)
-    inlines = (RecipeIngredientInline,)
+    inlines = (RecipeIngredientInline, RecipeTagInline)
     list_filter = ('name', 'author', 'tags')
 
     def favorite_count(self, obj):

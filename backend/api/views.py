@@ -61,6 +61,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
             'is_in_shopping_cart')
         is_favorited = self.request.query_params.get('is_favorited')
         tags = self.request.query_params.getlist('tags')
+        author = self.request.query_params.get('author')
 
         if is_in_shopping_cart is not None:
             queryset = queryset.filter(shopping_carts__user=user)
@@ -68,6 +69,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
             queryset = queryset.filter(favorites__user=user)
         if tags:
             queryset = queryset.filter(recipe_tag__tag__slug__in=tags)
+        if author is not None:
+            queryset = queryset.filter(author=author)
 
         return queryset
 

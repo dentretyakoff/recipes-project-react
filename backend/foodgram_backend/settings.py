@@ -159,8 +159,8 @@ DJOSER = {
         'user': 'api.serializers.UserSerializer',
     },
     'PERMISSIONS': {
-        'user': ['rest_framework.permissions.AllowAny'],
-        'user_list': ['rest_framework.permissions.AllowAny'],
+        'user': ['api.permissions.CurrentUserOrAdminOrReadOnly'],
+        'user_list': ['api.permissions.CurrentUserOrAdminOrReadOnly'],
     },
     'EMAIL_UNIQUE': True,
     'HIDE_USERS' : False
