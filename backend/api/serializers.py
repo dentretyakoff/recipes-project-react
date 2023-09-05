@@ -44,7 +44,6 @@ class UserSerializer(serializers.ModelSerializer):
             'id', 'username', 'email', 'first_name',
             'last_name', 'is_subscribed')
 
-    # !Дописать
     def get_is_subscribed(self, author: User) -> bool:
         user = self.context['request'].user
         if user.is_authenticated:

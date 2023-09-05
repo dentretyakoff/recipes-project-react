@@ -3,11 +3,11 @@ from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet as DjoserUserViewSet
 from rest_framework import filters, mixins, status, viewsets
 from rest_framework.decorators import action
-from rest_framework.pagination import PageNumberPagination
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from api.filters import IngredientSearch
+from api.pagination import CustomPagination
 from api.permissions import ReadOnly
 from api.serializers import (IngredientSerializer, RecipeSerializer,
                              RecipeShortSerializer, TagSerializer,
@@ -136,17 +136,18 @@ class CustomUserViewSet(DjoserUserViewSet):
     """
     filter_backends = (filters.OrderingFilter,)
     ordering = ('-id',)
-    # permission_classes = [AllowAny]
+    permission_classes = [ReadOnly | IsAuthenticated]
 
-    @action(detail=False)
+    @action(detail=False, permission_classes=(IsAuthenticated,))
     def subscriptions(self, request):
         """Список подписок пользователя."""
-        pagination = PageNumberPagination()
+        pagination = CustomPagination()
         user = request.user
         follows = user.follower.all(
             ).select_related('author'
                              ).prefetch_related('author__recipes')
         authors = [follow.author for follow in follows]
+        recipes_limit = self.request.query_params.get('recipes_limit', 3)
         page = pagination.paginate_queryset(authors, request)
         data = UserSerializer(page,
                               many=True,
@@ -156,7 +157,8 @@ class CustomUserViewSet(DjoserUserViewSet):
             for author_data in data:
                 if author_data['id'] == author.id:
                     recipes = RecipeShortSerializer(
-                        author.recipes.all(),
+                        author.recipes.all().order_by('-id'
+                                                      )[:int(recipes_limit)],
                         many=True,
                         context={'request': request}).data
                     author_data['recipes'] = recipes
