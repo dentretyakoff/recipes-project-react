@@ -137,7 +137,9 @@ class CustomUserViewSet(DjoserUserViewSet):
     Расширяет стандарный UserViewSet из djoser, для работы
     url-ов subscriptions и subscribe.
     """
-    # permission_classes = [ReadOnly | IsAuthenticated]
+    filter_backends = (filters.OrderingFilter,)
+    ordering = ('-id',)
+    # permission_classes = [AllowAny]
 
     @action(detail=False)
     def subscriptions(self, request):

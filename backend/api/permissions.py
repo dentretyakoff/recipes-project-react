@@ -14,10 +14,15 @@ class CurrentUserOrAdminOrReadOnly(BasePermission):
     """Права на эндпоинт пользователей."""
     def has_permission(self, request, view):
         user = request.user
-        return request.method in SAFE_METHODS or user.is_staff
+        if user.is_authenticated:
+            return user.is_staff
+        return request.method in SAFE_METHODS
 
     def has_object_permission(self, request, view, obj):
         user = request.user
+        print(user.is_authenticated)
+        if user.is_authenticated:
+            return user.is_staff
         if type(obj) == type(user) and obj == user:
             return True
-        return request.method in SAFE_METHODS or user.is_staff
+        return request.method in SAFE_METHODS
