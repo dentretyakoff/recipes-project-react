@@ -1,8 +1,9 @@
 import csv
 
 from django.core.management import BaseCommand
-from recipes.models import Ingredient
 from tqdm import tqdm
+
+from recipes.models import Ingredient
 
 
 class Command(BaseCommand):

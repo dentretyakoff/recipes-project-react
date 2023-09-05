@@ -1,10 +1,8 @@
 from django.urls import include, path
 from rest_framework.routers import DefaultRouter
 
-from api.views import (RecipeViewSet, TagListRetrieveViewSet,  # isort: skip
-                       IngredientListRetrieveViewSet,  # isort: skip
-                       CustomUserViewSet)  # isort: skip
-
+from api.views import (CustomUserViewSet, IngredientListRetrieveViewSet,
+                       RecipeViewSet, TagListRetrieveViewSet)
 
 router = DefaultRouter()
 router.register('tags', TagListRetrieveViewSet)

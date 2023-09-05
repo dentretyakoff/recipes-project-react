@@ -1,16 +1,15 @@
 import base64
 
 from django.core.files.base import ContentFile
-from rest_framework import serializers
 from django.core.validators import RegexValidator
-from djoser.serializers import (UserCreateSerializer
-                                as DjoserUserCreateSerializer)
+from djoser.serializers import \
+    UserCreateSerializer as DjoserUserCreateSerializer
+from rest_framework import serializers
 
-from recipes.models import (Tag, Recipe, Ingredient,  # isort: skip
-                            RecipeIngredient, RecipeTag)  # isort: skip
-from users.models import User  # isort: skip
-from api.utils import (create_recipe_tag_relation,  # isort: skip
-                       create_recipe_ingredient_relation)  # isort: skip
+from api.utils import (create_recipe_ingredient_relation,
+                       create_recipe_tag_relation)
+from recipes.models import Ingredient, Recipe, RecipeIngredient, RecipeTag, Tag
+from users.models import User
 
 
 class TagSerializer(serializers.ModelSerializer):

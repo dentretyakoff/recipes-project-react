@@ -1,10 +1,9 @@
 from django.contrib import admin
 from import_export.admin import ImportExportModelAdmin
 
-from recipes.models import (Favorite, Ingredient,  # isort: skip
-                            Recipe, RecipeIngredient,  # isort: skip
-                            RecipeTag, ShoppingCart, Tag)  # isort: skip
-from users.models import Follow  # isort: skip
+from recipes.models import (Favorite, Ingredient, Recipe, RecipeIngredient,
+                            RecipeTag, ShoppingCart, Tag)
+from users.models import Follow
 
 
 class RecipeIngredientInline(admin.TabularInline):

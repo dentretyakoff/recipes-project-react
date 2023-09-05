@@ -6,10 +6,8 @@ from django.shortcuts import get_object_or_404
 from rest_framework import status
 from rest_framework.response import Response
 
-from recipes.models import (Ingredient, Recipe,  # isort: skip
-                            RecipeIngredient,  # isort: skip
-                            RecipeTag, Tag)  # isort: skip
-from users.models import User  # isort: skip
+from recipes.models import Ingredient, Recipe, RecipeIngredient, RecipeTag, Tag
+from users.models import User
 
 
 def create_recipe_tag_relation(recipe: Recipe, tags_data: list) -> None:
