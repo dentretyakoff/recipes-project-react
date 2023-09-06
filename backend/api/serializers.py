@@ -170,3 +170,29 @@ class RecipeShortSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = ('id', 'name', 'cooking_time', 'image')
+
+
+class SubscriptionsSerializer(UserSerializer):
+    """Сериализатор подписок."""
+    recipes = serializers.SerializerMethodField()
+    recipes_count = serializers.SerializerMethodField()
+
+    class Meta(UserSerializer.Meta):
+        fields = UserSerializer.Meta.fields + ('recipes', 'recipes_count')
+
+    def get_recipes(self, user: User) -> dict:
+        """Рецепты пользователя."""
+        request = self.context.get('request')
+        default_recipes_limit = 3  # Лимит, если не передан параметр
+        recipes_limit = request.query_params.get(
+            'recipes_limit',
+            default_recipes_limit)
+        recipes = user.recipes.all().order_by('-id')[:int(recipes_limit)]
+
+        return RecipeShortSerializer(recipes,
+                                     many=True,
+                                     context={'request': request}).data
+
+    def get_recipes_count(self, user: User) -> int:
+        """Количество рецептов пользователя."""
+        return user.recipes.all().count()
