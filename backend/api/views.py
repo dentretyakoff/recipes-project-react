@@ -79,10 +79,20 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         # Создание записи
         if request.method == 'POST':
-            message = 'Рецепт уже в корзине.'
-            response = custom_post(
-                request, recipe, user, ShoppingCart, message)
-            return response
+            # message = 'Рецепт уже в корзине.'
+            # response = custom_post(
+            #     request, recipe, user, ShoppingCart, message)
+            # return response
+            cart, created = ShoppingCart.objects.get_or_create(
+                recipe=recipe, user=user)
+            if created:
+                serializer = RecipeShortSerializer(
+                    recipe, context={'request': request})
+                return Response(serializer.data,
+                                status=status.HTTP_201_CREATED)
+            else:
+                return Response({'errors': 'Рецепт уже в корзине.'},
+                                status=status.HTTP_400_BAD_REQUEST)
 
         # Удаление записи
         if request.method == 'DELETE':
@@ -178,15 +188,17 @@ class CustomUserViewSet(DjoserUserViewSet):
         if request.method == 'POST':
             try:
                 Follow.objects.create(author=author, user=user)
-                recipes = RecipeShortSerializer(
-                        author.recipes.all(),
-                        many=True,
-                        context={'request': request}).data
-                data = UserSerializer(author,
-                                      context={'request': request}).data
-                data['recipes'] = recipes
-                data['recipes_count'] = author.recipes.all().count()
-                return Response(data,
+                serializer = SubscriptionsSerializer(
+                    author, context={'request': request})
+                # recipes = RecipeShortSerializer(
+                #         author.recipes.all(),
+                #         many=True,
+                #         context={'request': request}).data
+                # data = UserSerializer(author,
+                #                       context={'request': request}).data
+                # data['recipes'] = recipes
+                # data['recipes_count'] = author.recipes.all().count()
+                return Response(serializer.data,
                                 status=status.HTTP_201_CREATED)
             except IntegrityError:
                 return Response({'errors': 'Уже в подписках.'},
@@ -194,7 +206,7 @@ class CustomUserViewSet(DjoserUserViewSet):
 
         # Удаление записи
         if request.method == 'DELETE':
-            message = 'Подписка отсутсвует'
+            message = 'Подписка отсутсвует.'
             response = custom_delete(data={'author': author, 'user': user},
                                      model=Follow, message=message)
             return response

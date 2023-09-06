@@ -31,6 +31,7 @@ def create_recipe_ingredient_relation(
 
 
 def make_file(data: dict) -> HttpResponse:
+    """Формирование файла со списком покупок."""
     response = HttpResponse(content_type='text/plan')
     response['Content-Disposition'] = 'attachment; filename="ingredients.txt"'
     cur_datetime = datetime.now().strftime('%d-%m-%Y %H:%M:%S')
@@ -59,6 +60,10 @@ def custom_post(request: HttpRequest, recipe: Recipe, user: User,
 
 
 def custom_delete(data: dict, model: models.Model, message: str) -> Response:
+    """
+    Удаление объектов из M2M таблиц.
+    Корзина, избранное, подписки.
+    """
     try:
         obj = model.objects.get(**data)
         obj.delete()
