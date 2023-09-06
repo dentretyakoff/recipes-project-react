@@ -10,8 +10,7 @@ from api.filters import IngredientSearch
 from api.pagination import CustomPagination
 from api.permissions import ReadOnly
 from api.serializers import (IngredientSerializer, RecipeSerializer,
-                             RecipeShortSerializer, TagSerializer,
-                             UserSerializer, SubscriptionsSerializer)
+                             TagSerializer, SubscriptionsSerializer)
 from api.utils import custom_delete, custom_post, make_file
 from recipes.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 from users.models import Follow, User
@@ -79,20 +78,10 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         # Создание записи
         if request.method == 'POST':
-            # message = 'Рецепт уже в корзине.'
-            # response = custom_post(
-            #     request, recipe, user, ShoppingCart, message)
-            # return response
-            cart, created = ShoppingCart.objects.get_or_create(
-                recipe=recipe, user=user)
-            if created:
-                serializer = RecipeShortSerializer(
-                    recipe, context={'request': request})
-                return Response(serializer.data,
-                                status=status.HTTP_201_CREATED)
-            else:
-                return Response({'errors': 'Рецепт уже в корзине.'},
-                                status=status.HTTP_400_BAD_REQUEST)
+            message = 'Рецепт уже в корзине.'
+            response = custom_post(
+                request, recipe, user, ShoppingCart, message)
+            return response
 
         # Удаление записи
         if request.method == 'DELETE':
@@ -157,24 +146,9 @@ class CustomUserViewSet(DjoserUserViewSet):
             ).select_related('author'
                              ).prefetch_related('author__recipes')
         authors = [follow.author for follow in follows]
-        # recipes_limit = self.request.query_params.get('recipes_limit', 3)
         page = pagination.paginate_queryset(authors, request)
         serializer = SubscriptionsSerializer(
             page, many=True, context={'request': request})
-        # data = UserSerializer(page,
-        #                       many=True,
-        #                       context={'request': request}).data
-
-        # for author in authors:
-        #     for author_data in data:
-        #         if author_data['id'] == author.id:
-        #             recipes = RecipeShortSerializer(
-        #                 author.recipes.all().order_by('-id'
-        #                                               )[:int(recipes_limit)],
-        #                 many=True,
-        #                 context={'request': request}).data
-        #             author_data['recipes'] = recipes
-        #             author_data['recipes_count'] = author.recipes.all().count()
 
         return pagination.get_paginated_response(serializer.data)
 
@@ -190,14 +164,6 @@ class CustomUserViewSet(DjoserUserViewSet):
                 Follow.objects.create(author=author, user=user)
                 serializer = SubscriptionsSerializer(
                     author, context={'request': request})
-                # recipes = RecipeShortSerializer(
-                #         author.recipes.all(),
-                #         many=True,
-                #         context={'request': request}).data
-                # data = UserSerializer(author,
-                #                       context={'request': request}).data
-                # data['recipes'] = recipes
-                # data['recipes_count'] = author.recipes.all().count()
                 return Response(serializer.data,
                                 status=status.HTTP_201_CREATED)
             except IntegrityError:
