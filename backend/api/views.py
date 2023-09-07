@@ -10,7 +10,8 @@ from api.filters import IngredientSearch
 from api.pagination import CustomPagination
 from api.permissions import ReadOnly
 from api.serializers import (IngredientSerializer, RecipeSerializer,
-                             TagSerializer, SubscriptionsSerializer)
+                             SubscriptionsSerializer, TagSerializer,
+                             UserSerializer)
 from api.utils import custom_delete, custom_post, make_file
 from recipes.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 from users.models import Follow, User
@@ -177,3 +178,9 @@ class CustomUserViewSet(DjoserUserViewSet):
             response = custom_delete(data={'author': author, 'user': user},
                                      model=Follow, message=message)
             return response
+
+    @action(detail=False, methods=['get'],
+            permission_classes=(IsAuthenticated,))
+    def me(self, request):
+        serializer = UserSerializer(request.user, context={'request': request})
+        return Response(serializer.data, status=status.HTTP_200_OK)

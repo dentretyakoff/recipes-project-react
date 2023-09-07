@@ -46,10 +46,8 @@ class UserSerializer(serializers.ModelSerializer):
 
     def get_is_subscribed(self, author: User) -> bool:
         user = self.context['request'].user
-        if user.is_authenticated:
-            return user.follower.filter(author=author).exists()
-        else:
-            return False
+        return (user.is_authenticated
+                and user.follower.filter(author=author).exists())
 
 
 class UserCreateSerializer(DjoserUserCreateSerializer):
@@ -103,17 +101,13 @@ class RecipeSerializer(serializers.ModelSerializer):
 
     def get_is_favorited(self, recipe: Recipe) -> bool:
         user = self.context['request'].user
-        if user.is_authenticated:
-            return user.favorites.filter(recipe=recipe).exists()
-        else:
-            return False
+        return (user.is_authenticated
+                and user.favorites.filter(recipe=recipe).exists())
 
     def get_is_in_shopping_cart(self, recipe: Recipe) -> bool:
         user = self.context['request'].user
-        if user.is_authenticated:
-            return user.shopping_carts.filter(recipe=recipe).exists()
-        else:
-            return False
+        return (user.is_authenticated
+                and user.shopping_carts.filter(recipe=recipe).exists())
 
     def create(self, validated_data):
         tags_data = validated_data.pop('tags')
