@@ -121,7 +121,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
             recipe_ingredients = recipe.recipe_igredient.all().select_related(
                 'ingredient')
             for recipe_ingredient in recipe_ingredients:
-                name = recipe_ingredient.ingredient.name
+                name = f'{recipe_ingredient.ingredient.name} '\
+                       f'({recipe_ingredient.ingredient.measurement_unit})'
                 amount = recipe_ingredient.amount
                 ingr_list.setdefault(name, 0)
                 ingr_list[name] += amount

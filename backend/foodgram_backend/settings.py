@@ -158,33 +158,6 @@ DJOSER = {
         'current_user': 'api.serializers.UserSerializer',
         'user': 'api.serializers.UserSerializer',
     },
-    'PERMISSIONS': {
-    #     'user': ['rest_framework.permissions.AllowAny'],
-         'user_list': ['rest_framework.permissions.AllowAny'],
-    #     'user': ['api.permissions.CurrentUserOrAdminOrReadOnly'],
-    #     'user_list': ['api.permissions.CurrentUserOrAdminOrReadOnly'],
-    },
     'EMAIL_UNIQUE': True,
     'HIDE_USERS' : False
 }
-
-# LOGGING = {
-#     'version': 1,
-#     'handlers': {
-#         'console': {
-#             'class': 'logging.StreamHandler',
-#         },
-#     },
-#     'loggers': {
-#         'django.db.backends': {
-#             'level': 'DEBUG',
-#         },
-#         'django.requests': {
-#             'level': 'DEBUG',
-#             'propagate': False,
-#         },
-#     },
-#     'root': {
-#         'handlers': ['console'],
-#     }
-# }
