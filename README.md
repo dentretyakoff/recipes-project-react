@@ -50,7 +50,7 @@ Foodgram - это интернет-сервис, который позволяе
 - Скопируйте в `~/foodgram` файл `docker-compose.production.yml`
 - Запустите приложение в контейнерах
     ```
-    sudo docker compose up -d
+    sudo docker compose -f docker-compose.production.yml up -d
     ```
 
 ### Авторы
