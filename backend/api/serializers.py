@@ -14,7 +14,6 @@ from users.models import User
 
 class TagSerializer(serializers.ModelSerializer):
     """Сериализатор тегов."""
-
     class Meta:
         model = Tag
         fields = '__all__'
@@ -25,10 +24,10 @@ class TagSerializer(serializers.ModelSerializer):
 
 class IngredientSerializer(serializers.ModelSerializer):
     """Сериализатор ингредиентов."""
-
     class Meta:
         model = Ingredient
         fields = '__all__'
+        read_only_fields = ('name', 'measurement_unit')
 
     def to_internal_value(self, data):
         return data
@@ -89,6 +88,25 @@ class RecipeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = '__all__'
+
+    def validate(self, data):
+        ingredients = data.get('ingredients')
+        min_value = 1  # Минимальное количество ингредиента
+
+        for ingredient in ingredients:
+            ingredient_id = ingredient.get('id')
+            amount = ingredient.get('amount')
+            if ingredient_id is None:
+                raise serializers.ValidationError(
+                    {'message': 'Укажите id ингредиента.'})
+            if amount is None:
+                raise serializers.ValidationError(
+                    {'message': 'Поле amount обязательно для заполнения.'})
+            if ingredient.get('amount') < min_value:
+                raise serializers.ValidationError(
+                    {'message': 'Количество должно быть больше 0.'})
+
+        return super().validate(data)
 
     def to_representation(self, recipe):
         """Добавляем количество каждому ингредиенту."""
