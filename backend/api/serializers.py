@@ -102,7 +102,7 @@ class RecipeSerializer(serializers.ModelSerializer):
             if amount is None:
                 raise serializers.ValidationError(
                     {'message': 'Поле amount обязательно для заполнения.'})
-            if ingredient.get('amount') < min_value:
+            if int(amount) < min_value:
                 raise serializers.ValidationError(
                     {'message': 'Количество должно быть больше 0.'})
 
