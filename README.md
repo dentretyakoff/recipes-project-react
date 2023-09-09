@@ -23,29 +23,30 @@ Foodgram - это интернет-сервис, который позволяе
 
 ### Установка и запуск проекта:
 - Установите `docker`
-        ```
-        sudo apt update
-        sudo apt install curl
-        curl -fSL https://get.docker.com -o get-docker.sh
-        sudo sh ./get-docker.sh
-        sudo apt-get install docker-compose-plugin
-        ```
+    ```
+    sudo apt update
+    sudo apt install curl
+    curl -fSL https://get.docker.com -o get-docker.sh
+    sudo sh ./get-docker.sh
+    sudo apt-get install docker-compose-plugin
+    ```
 - Установите `sudo apt install nginx` и настройте веб-сервер, пример конфигурации:
-        ```
-        server {
-            server_name foodgram.dev;
-            location / {
-            proxy_pass http://127.0.0.1:8000;
+    ```
+    server {
+        server_name foodgram.dev;
+        location / {
+        proxy_pass http://127.0.0.1:8000;
         }
-        ```
+    }
+    ```
 - В домашней директории пользователя создайте каталог `foodgram`
 - Создайте в `~/foodgram` файл .env и запишите в него необходимые переменные окружения:
-        - `POSTGRES_USER=foodgram_user`
-        - `POSTGRES_PASSWORD=foodgram_password`
-        - `POSTGRES_DB=foodgram`
-        - `DB_HOST=db`
-        - `DB_PORT=5432`
-        - `SECRET_KEY=Super_secret_key`
+    - `POSTGRES_USER=foodgram_user`
+    - `POSTGRES_PASSWORD=foodgram_password`
+    - `POSTGRES_DB=foodgram`
+    - `DB_HOST=db`
+    - `DB_PORT=5432`
+    - `SECRET_KEY=Super_secret_key`
 - Скопируйте в `~/foodgram` файл `docker-compose.production.yml`
 - Запустите приложение в контейнерах
     ```
