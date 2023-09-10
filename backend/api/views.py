@@ -145,9 +145,9 @@ class CustomUserViewSet(DjoserUserViewSet):
         """Список подписок пользователя."""
         pagination = CustomPagination()
         user = request.user
-        follows = user.follower.all(
-            ).select_related('author'
-                             ).prefetch_related('author__recipes')
+        follows = (user.follower.all()
+                   .select_related('author')
+                   .prefetch_related('author__recipes'))
         authors = [follow.author for follow in follows]
         page = pagination.paginate_queryset(authors, request)
         serializer = SubscriptionsSerializer(
