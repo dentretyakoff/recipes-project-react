@@ -1,4 +1,7 @@
 # Foodgram
+https://foodgram.kittygramx.space
+admin
+AKSJDHGkjaghsdhg123!@#!
 
 ### Описание 
 Foodgram - это интернет-сервис, который позволяет пользователям делиться рецептами.

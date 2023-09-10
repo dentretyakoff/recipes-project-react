@@ -9,18 +9,18 @@ volumes:
 services:
   db:
     image: postgres:13
-    env_file: ../.env
+    env_file: .env
     volumes:
       - pg_data:/var/lib/postgresql/data
   frontend:
     build:
-      context: ../frontend
+      context: ./frontend
       dockerfile: Dockerfile
     volumes:
-      - ../frontend/:/app/result_build/
+      - ./frontend/:/app/result_build/
   backend:
-    build: ../backend/
-    env_file: ../.env
+    build: ./backend/
+    env_file: .env
     volumes:
       - static_django:/backend_static
       - media:/app/media_files
@@ -33,12 +33,12 @@ services:
         cp -r /app/collected_static/. /backend_static/ &&
         gunicorn --bind 0.0.0.0:8000 foodgram_backend.wsgi"
   nginx:
-    build: ../nginx
+    build: ./nginx
     ports:
       - 8000:80
     volumes:
-      - ../frontend/build:/usr/share/nginx/html/
-      - ../docs/:/usr/share/nginx/html/api/docs/
+      - ./frontend/build:/usr/share/nginx/html/
+      - ./docs/:/usr/share/nginx/html/api/docs/
       - static_django:/backend_static/
       - media:/media_files
     depends_on:
