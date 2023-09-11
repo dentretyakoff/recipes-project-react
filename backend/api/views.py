@@ -181,5 +181,6 @@ class CustomUserViewSet(DjoserUserViewSet):
     @action(detail=False, methods=['get'],
             permission_classes=(IsAuthenticated,))
     def me(self, request):
+        """Переопределил me для ограничения до метода GET."""
         serializer = UserSerializer(request.user, context={'request': request})
         return Response(serializer.data, status=status.HTTP_200_OK)
