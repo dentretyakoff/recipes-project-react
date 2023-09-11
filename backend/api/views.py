@@ -116,15 +116,15 @@ class RecipeViewSet(viewsets.ModelViewSet):
     def download_shopping_cart(self, request):
         ingr_list = {}
         user = request.user
-        shopping_carts = user.shopping_carts.all().select_related('recipe')
+        shopping_cart = user.shopping_carts.all().select_related('recipe')
 
-        for shopping_cart in shopping_carts:
+        for shopping_cart in shopping_cart:
             recipe = shopping_cart.recipe
             recipe_ingredients = recipe.recipe_igredient.all().select_related(
                 'ingredient')
             for recipe_ingredient in recipe_ingredients:
-                name = f'{recipe_ingredient.ingredient.name} '\
-                       f'({recipe_ingredient.ingredient.measurement_unit})'
+                name = (f'{recipe_ingredient.ingredient.name} '
+                        f'({recipe_ingredient.ingredient.measurement_unit})')
                 amount = recipe_ingredient.amount
                 ingr_list.setdefault(name, 0)
                 ingr_list[name] += amount
@@ -144,11 +144,9 @@ class CustomUserViewSet(DjoserUserViewSet):
     def subscriptions(self, request):
         """Список подписок пользователя."""
         pagination = CustomPagination()
-        user = request.user
-        follows = (user.follower.all()
-                   .select_related('author')
-                   .prefetch_related('author__recipes'))
-        authors = [follow.author for follow in follows]
+        authors_id = request.user.follower.all().values_list('author')
+        authors = (User.objects.filter(id__in=authors_id)
+                   .prefetch_related('recipes'))
         page = pagination.paginate_queryset(authors, request)
         serializer = SubscriptionsSerializer(
             page, many=True, context={'request': request})
