@@ -161,3 +161,7 @@ DJOSER = {
     'EMAIL_UNIQUE': True,
     'HIDE_USERS' : False
 }
+
+# Константы
+# Минимальное время приготовления
+MIN_COOKING_TIME = 1

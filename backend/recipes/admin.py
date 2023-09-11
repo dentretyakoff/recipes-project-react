@@ -41,7 +41,6 @@ class TagAdmin(admin.ModelAdmin):
 
 
 @admin.register(Ingredient)
-# class IngredientAdmin(admin.ModelAdmin):
 class IngredientAdmin(ImportExportModelAdmin):
     list_display = ('id', 'name', 'measurement_unit')
     list_filter = ('name',)

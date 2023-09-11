@@ -1,6 +1,12 @@
 from django.db import models
+from django.core.validators import MinValueValidator
+from django.conf import settings
 
 from users.models import User
+
+
+# Минимальное время приготовления, для валидатора в модели Recipe
+MIN_COOKING_TIME = settings.MIN_COOKING_TIME
 
 
 class Tag(models.Model):
@@ -39,7 +45,11 @@ class Recipe(models.Model):
     name = models.CharField('Название рецепта', max_length=200)
     image = models.ImageField('Картинка', upload_to='recipes/')
     text = models.TextField('Текстовое описание блюда')
-    cooking_time = models.IntegerField('Время приготовления')
+    cooking_time = models.IntegerField(
+        'Время приготовления',
+        validators=[MinValueValidator(
+            MIN_COOKING_TIME,
+            message='Укажите время приготовления больше 0.')])
     tags = models.ManyToManyField(Tag,
                                   verbose_name='Теги',
                                   through='RecipeTag')
@@ -68,6 +78,10 @@ class RecipeTag(models.Model):
     class Meta:
         verbose_name = 'Рецепт - Тег'
         verbose_name_plural = 'Рецепты - Теги'
+        constraints = [
+            models.UniqueConstraint(fields=['recipe', 'tag'],
+                                    name='unique_recipe_tag')
+        ]
 
 
 class RecipeIngredient(models.Model):
@@ -85,6 +99,10 @@ class RecipeIngredient(models.Model):
     class Meta:
         verbose_name = 'Рецепт - Ингредиент'
         verbose_name_plural = 'Рецепты - Ингредиенты'
+        constraints = [
+            models.UniqueConstraint(fields=['recipe', 'ingredient'],
+                                    name='unique_recipe_ingredient')
+        ]
 
     def __str__(self):
         return f'{self.recipe.name} - {self.ingredient.name}'
