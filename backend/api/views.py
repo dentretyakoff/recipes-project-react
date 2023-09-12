@@ -1,4 +1,3 @@
-from django.db import IntegrityError
 from django.shortcuts import get_object_or_404
 from djoser.views import UserViewSet as DjoserUserViewSet
 from rest_framework import filters, mixins, status, viewsets
@@ -6,7 +5,8 @@ from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from api.filters import IngredientSearch
+from api.filters import (IngredientSearch, IsInShoppingCartFilter,
+                         IsFavoritedFilter, TagsFilter, AuthorFilter)
 from api.pagination import CustomPagination
 from api.permissions import ReadOnly
 from api.serializers import (IngredientSerializer, RecipeSerializer,
@@ -48,30 +48,9 @@ class RecipeViewSet(viewsets.ModelViewSet):
     serializer_class = RecipeSerializer
     http_method_names = ['get', 'post', 'patch', 'delete']
     permission_classes = [ReadOnly | IsAuthenticated]
-    filter_backends = (filters.OrderingFilter,)
+    filter_backends = (filters.OrderingFilter, IsInShoppingCartFilter,
+                       IsFavoritedFilter, TagsFilter, AuthorFilter)
     ordering = ('-id',)
-
-    def get_queryset(self):
-        queryset = Recipe.objects.all()
-        user = self.request.user
-
-        is_in_shopping_cart = self.request.query_params.get(
-            'is_in_shopping_cart')
-        is_favorited = self.request.query_params.get('is_favorited')
-        tags = self.request.query_params.getlist('tags')
-        author = self.request.query_params.get('author')
-
-        if is_in_shopping_cart is not None:
-            queryset = queryset.filter(shopping_carts__user=user)
-        if is_favorited is not None:
-            queryset = queryset.filter(favorites__user=user)
-        if tags:
-            queryset = queryset.filter(
-                recipe_tag__tag__slug__in=tags).distinct()
-        if author is not None:
-            queryset = queryset.filter(author=author)
-
-        return queryset
 
     @action(detail=True, methods=['post', 'delete'])
     def shopping_cart(self, request, pk) -> Response:
