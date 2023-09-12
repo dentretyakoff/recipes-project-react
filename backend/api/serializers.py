@@ -7,9 +7,8 @@ from djoser.serializers import (UserCreateSerializer
                                 as DjoserUserCreateSerializer)
 from rest_framework import serializers
 
-from api.utils import (create_recipe_ingredient_relation,
-                       create_recipe_tag_relation)
-from recipes.models import Ingredient, Recipe, RecipeIngredient, RecipeTag, Tag
+from api.utils import create_recipe_ingredient_relation
+from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
 from users.models import User
 
 
@@ -135,7 +134,6 @@ class RecipeSerializer(serializers.ModelSerializer):
 
         # Создаем связь рецепта с тегами
         recipe.tags.set(Tag.objects.filter(id__in=tags_data))
-        # create_recipe_tag_relation(recipe, tags_data)
 
         # Создаем связь рецепта с ингредиентами
         create_recipe_ingredient_relation(recipe, ingredients_data)
@@ -175,7 +173,8 @@ class RecipeShortSerializer(serializers.ModelSerializer):
 class SubscriptionsSerializer(UserSerializer):
     """Сериализатор подписок."""
     recipes = serializers.SerializerMethodField()
-    recipes_count = serializers.SerializerMethodField()
+    recipes_count = serializers.IntegerField(
+        source='recipes.count', read_only=True)
 
     class Meta(UserSerializer.Meta):
         fields = UserSerializer.Meta.fields + ('recipes', 'recipes_count')
@@ -193,18 +192,46 @@ class SubscriptionsSerializer(UserSerializer):
                                      many=True,
                                      context={'request': request}).data
 
-    def get_recipes_count(self, user: User) -> int:
-        """Количество рецептов пользователя."""
-        return user.recipes.all().count()
+    def validate(self, data):
+        author = self.instance
+        request = self.context.get('request')
 
-    def validate(self, attrs):
-        print(attrs)
-        return attrs
+        if request.user.follower.filter(author=author).exists():
+            raise serializers.ValidationError('Уже в подписках.')
 
-    def create(self, validated_data):
-        author = validated_data.get('author')
-        user = validated_data.get('user')
+        if request.user == author:
+            raise serializers.ValidationError('Нельзя подписаться на себя.')
 
-        author.following.create(user=user)
+        return {}
 
-        return author
+
+class ShoppingCartSerializer(RecipeShortSerializer):
+    """Сериализатор корзин."""
+
+    class Meta(RecipeShortSerializer.Meta):
+        read_only_fields = ('name', 'cooking_time', 'image')
+
+    def validate(self, data):
+        recipe = self.instance
+        request = self.context.get('request')
+
+        if request.user.shopping_carts.filter(recipe=recipe).exists():
+            raise serializers.ValidationError(
+                'Рецепт уже в корзине.')
+        return {}
+
+
+class FavoriteSerializer(RecipeShortSerializer):
+    """Сериализатор избранного."""
+
+    class Meta(RecipeShortSerializer.Meta):
+        read_only_fields = ('name', 'cooking_time', 'image')
+
+    def validate(self, data):
+        recipe = self.instance
+        request = self.context.get('request')
+
+        if request.user.favorites.filter(recipe=recipe).exists():
+            raise serializers.ValidationError(
+                'Рецепт уже в избранном.')
+        return {}

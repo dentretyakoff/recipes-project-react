@@ -11,8 +11,9 @@ from api.pagination import CustomPagination
 from api.permissions import ReadOnly
 from api.serializers import (IngredientSerializer, RecipeSerializer,
                              SubscriptionsSerializer, TagSerializer,
-                             UserSerializer)
-from api.utils import custom_delete, custom_post, make_file
+                             UserSerializer, ShoppingCartSerializer,
+                             FavoriteSerializer)
+from api.utils import custom_delete, make_file
 from recipes.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 from users.models import Follow, User
 
@@ -80,10 +81,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         # Создание записи
         if request.method == 'POST':
-            message = 'Рецепт уже в корзине.'
-            response = custom_post(
-                request, recipe, user, ShoppingCart, message)
-            return response
+            serilizer = ShoppingCartSerializer(
+                recipe,
+                data={},
+                context={'request': request})
+            serilizer.is_valid(raise_exception=True)
+            user.shopping_carts.create(recipe=recipe)
+
+            return Response(serilizer.data, status=status.HTTP_201_CREATED)
 
         # Удаление записи
         if request.method == 'DELETE':
@@ -100,10 +105,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
 
         # Создание записи
         if request.method == 'POST':
-            message = 'Рецепт уже в избранном.'
-            response = custom_post(
-                request, recipe, user, Favorite, message)
-            return response
+            serilizer = FavoriteSerializer(
+                recipe,
+                data={},
+                context={'request': request})
+            serilizer.is_valid(raise_exception=True)
+            user.favorites.create(recipe=recipe)
+
+            return Response(serilizer.data, status=status.HTTP_201_CREATED)
 
         # Удаление записи
         if request.method == 'DELETE':
@@ -161,15 +170,14 @@ class CustomUserViewSet(DjoserUserViewSet):
 
         # Создание записи
         if request.method == 'POST':
-            try:
-                Follow.objects.create(author=author, user=user)
-                serializer = SubscriptionsSerializer(
-                    author, context={'request': request})
-                return Response(serializer.data,
-                                status=status.HTTP_201_CREATED)
-            except IntegrityError:
-                return Response({'errors': 'Уже в подписках.'},
-                                status=status.HTTP_400_BAD_REQUEST)
+            serializer = SubscriptionsSerializer(
+                author,
+                data={},
+                context={'request': request})
+            serializer.is_valid(raise_exception=True)
+            user.follower.create(author=author)
+
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
 
         # Удаление записи
         if request.method == 'DELETE':
