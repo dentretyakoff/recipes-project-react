@@ -148,13 +148,10 @@ class RecipeSerializer(serializers.ModelSerializer):
         # Обновляем теги
         recipe.tags.set(Tag.objects.filter(id__in=tags_data))
 
-        # Обновляем ингредиенты
-        ingredients_delete = RecipeIngredient.objects.filter(
-            recipe=recipe).exclude(ingredient_id__in=[
-                ingredient_id.get('id') for ingredient_id in ingredients_data
-            ])
-        for ingredient in ingredients_delete:
-            ingredient.delete()
+        # Удаляем лишние ингредиенты
+        # Так как метод bulk_create игнорирует UniqueConstraint
+        # использую .clear() вместо .remove(obj1, obj2,...)
+        recipe.ingredients.clear()
 
         # Добавляем новые ингредиенты
         create_recipe_ingredient_relation(recipe, ingredients_data)

@@ -11,12 +11,15 @@ from recipes.models import Recipe, RecipeIngredient
 def create_recipe_ingredient_relation(
         recipe: Recipe, ingredients_data: dict) -> None:
     """Добавление новых ингредиентов к рецептам."""
-    for ingredient_data in ingredients_data:
-        amount = ingredient_data.get('amount')
-        RecipeIngredient.objects.update_or_create(
-            recipe=recipe,
-            ingredient_id=ingredient_data.get('id'),
-            defaults={'amount': amount})
+    # Список для метода bulk_create
+    recipe_ingredients = [RecipeIngredient(
+        recipe=recipe,
+        ingredient_id=ingredient_data['id'],
+        amount=ingredient_data['amount'])
+        for ingredient_data in ingredients_data
+    ]
+
+    RecipeIngredient.objects.bulk_create(recipe_ingredients)
 
 
 def make_file(data: dict) -> HttpResponse:
