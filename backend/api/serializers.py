@@ -8,7 +8,7 @@ from djoser.serializers import (UserCreateSerializer
 from rest_framework import serializers
 
 from api.utils import create_recipe_ingredient_relation
-from recipes.models import Ingredient, Recipe, RecipeIngredient, Tag
+from recipes.models import Ingredient, Recipe, Tag
 from users.models import User
 
 
