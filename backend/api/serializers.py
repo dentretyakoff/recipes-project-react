@@ -15,6 +15,10 @@ from users.models import User
 MIN_VALUE = settings.MIN_VALUE  # Минимальное количество ингредиента
 REGEX_USERNAME = settings.REGEX_USERNAME
 DEFAULT_RECIPES_LIMIT = settings.DEFAULT_RECIPES_LIMIT
+MAX_LEN_USERNAME = settings.MAX_LEN_USERNAME
+MAX_LEN_EMAIL = settings.MAX_LEN_EMAIL
+MAX_LEN_FIRST_NAME = settings.MAX_LEN_FIRST_NAME
+MAX_LEN_LAST_NAME = settings.MAX_LEN_LAST_NAME
 
 
 class TagSerializer(serializers.ModelSerializer):
@@ -51,12 +55,14 @@ class UserSerializer(serializers.ModelSerializer):
 class UserCreateSerializer(DjoserUserCreateSerializer):
     """Сериализатор создания пользователя."""
     username = serializers.CharField(
-        max_length=150,
+        max_length=MAX_LEN_USERNAME,
         validators=[RegexValidator(REGEX_USERNAME, 'Некорректный формат.')],
     )
-    email = serializers.EmailField(required=True, max_length=254)
-    first_name = serializers.CharField(required=True, max_length=150)
-    last_name = serializers.CharField(required=True, max_length=150)
+    email = serializers.EmailField(required=True, max_length=MAX_LEN_EMAIL)
+    first_name = serializers.CharField(
+        required=True, max_length=MAX_LEN_FIRST_NAME)
+    last_name = serializers.CharField(
+        required=True, max_length=MAX_LEN_LAST_NAME)
 
     class Meta:
         model = User
@@ -133,7 +139,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         recipe = Recipe.objects.create(**validated_data, author=request.user)
 
         # Создаем связь рецепта с тегами
-        recipe.tags.set(Tag.objects.filter(id__in=tags_data))
+        recipe.tags.set(tags_data)
 
         # Создаем связь рецепта с ингредиентами
         create_recipe_ingredient_relation(recipe, ingredients_data)
@@ -146,7 +152,7 @@ class RecipeSerializer(serializers.ModelSerializer):
         ingredients_data = validated_data.pop('ingredients')
 
         # Обновляем теги
-        recipe.tags.set(Tag.objects.filter(id__in=tags_data))
+        recipe.tags.set(tags_data)
 
         # Удаляем лишние ингредиенты
         # Так как метод bulk_create игнорирует UniqueConstraint

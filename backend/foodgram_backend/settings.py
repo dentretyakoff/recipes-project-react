@@ -168,3 +168,7 @@ MIN_VALUE = 1  # Минимальное количество ингредиен�
 REGEX_USERNAME = r'^[\w.@+-]+\Z$'
 # Лимит списка рецептов на странице подписок
 DEFAULT_RECIPES_LIMIT = 3
+MAX_LEN_USERNAME = 150
+MAX_LEN_EMAIL = 254
+MAX_LEN_FIRST_NAME = 150
+MAX_LEN_LAST_NAME = 150
