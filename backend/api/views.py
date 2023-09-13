@@ -12,7 +12,7 @@ from api.permissions import ReadOnly
 from api.serializers import (IngredientSerializer, RecipeSerializer,
                              SubscriptionsSerializer, TagSerializer,
                              UserSerializer, ShoppingCartSerializer,
-                             FavoriteSerializer)
+                             FavoriteSerializer, RecipeWriteSerializer)
 from api.utils import custom_delete, make_file
 from recipes.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 from users.models import Follow, User
@@ -51,6 +51,22 @@ class RecipeViewSet(viewsets.ModelViewSet):
     filter_backends = (filters.OrderingFilter, IsInShoppingCartFilter,
                        IsFavoritedFilter, TagsFilter, AuthorFilter)
     ordering = ('-id',)
+
+    def get_serializer_class(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return RecipeWriteSerializer
+        return self.serializer_class
+
+    def create(self, request, *args, **kwargs):
+        """Переопределям ответ с полным набором полей."""
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+        headers = self.get_success_headers(serializer.data)
+        response_serializer = RecipeSerializer(serializer.instance,
+                                               context={'request': request})
+        return Response(response_serializer.data,
+                        status=status.HTTP_201_CREATED, headers=headers)
 
     @action(detail=True, methods=['post', 'delete'])
     def shopping_cart(self, request, pk) -> Response:

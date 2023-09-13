@@ -30,6 +30,8 @@ class TagSerializer(serializers.ModelSerializer):
 
 class IngredientSerializer(serializers.ModelSerializer):
     """Сериализатор ингредиентов."""
+    amount = serializers.IntegerField(write_only=True)
+
     class Meta:
         model = Ingredient
         fields = '__all__'
@@ -82,9 +84,9 @@ class Base64ImageField(serializers.ImageField):
 
 
 class RecipeSerializer(serializers.ModelSerializer):
-    """Сериализатор рецептов."""
+    """Сериализатор чтения рецептов."""
     author = UserSerializer(required=False)
-    tags = TagSerializer(many=True, read_only=True)
+    tags = TagSerializer(many=True)
     ingredients = IngredientSerializer(many=True)
     is_favorited = serializers.SerializerMethodField()
     is_in_shopping_cart = serializers.SerializerMethodField()
@@ -93,25 +95,6 @@ class RecipeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Recipe
         fields = '__all__'
-
-    def validate(self, data):
-        ingredients = self.context['request'].data.get('ingredients')
-
-        for ingredient in ingredients:
-            ingredient_id = ingredient.get('id')
-            amount = ingredient.get('amount')
-            if ingredient_id is None:
-                raise serializers.ValidationError('Укажите id ингредиента.')
-            if amount is None:
-                raise serializers.ValidationError(
-                    'Поле amount обязательно для заполнения.')
-            if int(amount) < MIN_VALUE:
-                raise serializers.ValidationError(
-                    'Количество должно быть больше 0.')
-
-        data['ingredients'] = ingredients
-
-        return super().validate(data)
 
     def to_representation(self, recipe):
         """Добавляем количество каждому ингредиенту."""
@@ -132,9 +115,34 @@ class RecipeSerializer(serializers.ModelSerializer):
         return (user.is_authenticated
                 and user.shopping_carts.filter(recipe=recipe).exists())
 
+
+class RecipeWriteSerializer(RecipeSerializer):
+    """Сериализатор записи рецептов."""
+    tags = serializers.PrimaryKeyRelatedField(
+        queryset=Tag.objects.all(), many=True)
+
+    def validate(self, data):
+        ingredients = self.context['request'].data.get('ingredients')
+
+        for ingredient in ingredients:
+            ingredient_id = ingredient.get('id')
+            amount = ingredient.get('amount')
+            if ingredient_id is None:
+                raise serializers.ValidationError('Укажите id ингредиента.')
+            if amount is None:
+                raise serializers.ValidationError(
+                    'Поле amount обязательно для заполнения.')
+            if int(amount) < MIN_VALUE:
+                raise serializers.ValidationError(
+                    'Количество должно быть больше 0.')
+
+        data['ingredients'] = ingredients
+
+        return super().validate(data)
+
     def create(self, validated_data):
         request = self.context['request']
-        tags_data = request.data.get('tags')
+        tags_data = validated_data.pop('tags')
         ingredients_data = validated_data.pop('ingredients')
         recipe = Recipe.objects.create(**validated_data, author=request.user)
 
