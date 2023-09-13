@@ -7,6 +7,7 @@ from users.models import User
 
 # Минимальное время приготовления, для валидатора в модели Recipe
 MIN_COOKING_TIME = settings.MIN_COOKING_TIME
+MIN_VALUE = settings.MIN_VALUE  # Минимальное количество ингредиента
 
 
 class Tag(models.Model):
@@ -94,7 +95,11 @@ class RecipeIngredient(models.Model):
                                    on_delete=models.CASCADE,
                                    related_name='recipe_igredient',
                                    verbose_name='Ингредиент')
-    amount = models.IntegerField('Количество')
+    amount = models.IntegerField(
+        'Количество',
+        validators=[MinValueValidator(
+            MIN_VALUE,
+            message='Укажите количество больше 0.')])
 
     class Meta:
         verbose_name = 'Рецепт - Ингредиент'
