@@ -1,18 +1,18 @@
 from django.shortcuts import get_object_or_404
+from django_filters.rest_framework import DjangoFilterBackend
 from djoser.views import UserViewSet as DjoserUserViewSet
 from rest_framework import filters, mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from api.filters import (IngredientSearch, IsInShoppingCartFilter,
-                         IsFavoritedFilter, TagsFilter, AuthorFilter)
+from api.filters import IngredientSearch, RecipeFilterSet
 from api.pagination import CustomPagination
 from api.permissions import ReadOnly
-from api.serializers import (IngredientSerializer, RecipeSerializer,
-                             SubscriptionsSerializer, TagSerializer,
-                             UserSerializer, ShoppingCartSerializer,
-                             FavoriteSerializer, RecipeWriteSerializer)
+from api.serializers import (FavoriteSerializer, IngredientSerializer,
+                             RecipeSerializer, RecipeWriteSerializer,
+                             ShoppingCartSerializer, SubscriptionsSerializer,
+                             TagSerializer, UserSerializer)
 from api.utils import custom_delete, make_file
 from recipes.models import Favorite, Ingredient, Recipe, ShoppingCart, Tag
 from users.models import Follow, User
@@ -48,8 +48,8 @@ class RecipeViewSet(viewsets.ModelViewSet):
     serializer_class = RecipeSerializer
     http_method_names = ['get', 'post', 'patch', 'delete']
     permission_classes = [ReadOnly | IsAuthenticated]
-    filter_backends = (filters.OrderingFilter, IsInShoppingCartFilter,
-                       IsFavoritedFilter, TagsFilter, AuthorFilter)
+    filter_backends = (filters.OrderingFilter, DjangoFilterBackend)
+    filterset_class = RecipeFilterSet
     ordering = ('-id',)
 
     def get_serializer_class(self):
@@ -67,6 +67,14 @@ class RecipeViewSet(viewsets.ModelViewSet):
                                                context={'request': request})
         return Response(response_serializer.data,
                         status=status.HTTP_201_CREATED, headers=headers)
+
+    def update(self, request, *args, **kwargs):
+        """Переопределям ответ с полным набором полей."""
+        super().update(request, *args, **kwargs)
+        response_serializer = RecipeSerializer(self.get_object(),
+                                               context={'request': request})
+        return Response(response_serializer.data,
+                        status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['post', 'delete'])
     def shopping_cart(self, request, pk) -> Response:

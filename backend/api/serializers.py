@@ -11,7 +11,6 @@ from api.utils import create_recipe_ingredient_relation
 from recipes.models import Ingredient, Recipe, Tag
 from users.models import User
 
-
 MIN_VALUE = settings.MIN_VALUE  # Минимальное количество ингредиента
 REGEX_USERNAME = settings.REGEX_USERNAME
 DEFAULT_RECIPES_LIMIT = settings.DEFAULT_RECIPES_LIMIT
@@ -86,6 +85,10 @@ class Base64ImageField(serializers.ImageField):
 class RecipeSerializer(serializers.ModelSerializer):
     """Сериализатор чтения рецептов."""
     author = UserSerializer(required=False)
+    # Убрал read_only, появилась ошибка из-за разницы форматов, чтение - dict,
+    # запись - list. Пришлось разнести сериализатор рецептов на два
+    # и переопределить ответы в методах .create() и update() вьюсета.
+    # Кажется получилось громоздко
     tags = TagSerializer(many=True)
     ingredients = IngredientSerializer(many=True)
     is_favorited = serializers.SerializerMethodField()
@@ -122,6 +125,9 @@ class RecipeWriteSerializer(RecipeSerializer):
         queryset=Tag.objects.all(), many=True)
 
     def validate(self, data):
+        # В data из вложенного сериализатора возвращается только
+        # поле amount, отстальные из-за read_only отбрасываются,
+        # поэтому достаем из request
         ingredients = self.context['request'].data.get('ingredients')
 
         for ingredient in ingredients:
@@ -209,11 +215,10 @@ class SubscriptionsSerializer(UserSerializer):
 
         if request.user.follower.filter(author=author).exists():
             raise serializers.ValidationError('Уже в подписках.')
-
         if request.user == author:
             raise serializers.ValidationError('Нельзя подписаться на себя.')
 
-        return {}
+        return data
 
 
 class ShoppingCartSerializer(RecipeShortSerializer):
@@ -229,7 +234,8 @@ class ShoppingCartSerializer(RecipeShortSerializer):
         if request.user.shopping_carts.filter(recipe=recipe).exists():
             raise serializers.ValidationError(
                 'Рецепт уже в корзине.')
-        return {}
+
+        return data
 
 
 class FavoriteSerializer(RecipeShortSerializer):
@@ -245,4 +251,5 @@ class FavoriteSerializer(RecipeShortSerializer):
         if request.user.favorites.filter(recipe=recipe).exists():
             raise serializers.ValidationError(
                 'Рецепт уже в избранном.')
-        return {}
+
+        return data

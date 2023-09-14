@@ -1,4 +1,7 @@
+from django_filters import rest_framework as django_filters
 from rest_framework import filters
+
+from recipes.models import Recipe, Tag
 
 
 class IngredientSearch(filters.BaseFilterBackend):
@@ -10,37 +13,29 @@ class IngredientSearch(filters.BaseFilterBackend):
         return queryset
 
 
-class IsInShoppingCartFilter(filters.BaseFilterBackend):
-    """Фильтр по наличию рецептов в корзине покупок пользователя."""
-    def filter_queryset(self, request, queryset, view):
-        is_in_shopping_cart = request.query_params.get('is_in_shopping_cart')
-        if is_in_shopping_cart is not None:
-            return queryset.filter(shopping_carts__user=request.user)
+class RecipeFilterSet(django_filters.FilterSet):
+    """Набор фильтров для рецептов."""
+    is_in_shopping_cart = django_filters.NumberFilter(
+        method='filter_is_in_shopping_cart')
+    is_favorited = django_filters.NumberFilter(
+        method='filter_is_favorited')
+    tags = django_filters.ModelMultipleChoiceFilter(
+        field_name='recipe_tag__tag__slug',
+        to_field_name='slug',
+        queryset=Tag.objects.all())
+    author = django_filters.NumberFilter(
+        field_name='author')
+
+    class Meta:
+        model = Recipe
+        fields = []
+
+    def filter_is_in_shopping_cart(self, queryset, name, is_in_shopping_cart):
+        if bool(is_in_shopping_cart):
+            return queryset.filter(shopping_carts__user=self.request.user)
         return queryset
 
-
-class IsFavoritedFilter(filters.BaseFilterBackend):
-    """Фильтр по наличию рецептов в избранном пользователя."""
-    def filter_queryset(self, request, queryset, view):
-        is_favorited = request.query_params.get('is_favorited')
-        if is_favorited:
-            return queryset.filter(favorites__user=request.user)
-        return queryset
-
-
-class TagsFilter(filters.BaseFilterBackend):
-    """Фильтр по тегам."""
-    def filter_queryset(self, request, queryset, view):
-        tags = request.query_params.getlist('tags')
-        if tags:
-            return queryset.filter(recipe_tag__tag__slug__in=tags).distinct()
-        return queryset
-
-
-class AuthorFilter(filters.BaseFilterBackend):
-    """Фильтр по автору рецептов."""
-    def filter_queryset(self, request, queryset, view):
-        author = request.query_params.get('author')
-        if author:
-            return queryset.filter(author=author)
+    def filter_is_favorited(self, queryset, name, is_favorited):
+        if bool(is_favorited):
+            return queryset.filter(favorites__user=self.request.user)
         return queryset
