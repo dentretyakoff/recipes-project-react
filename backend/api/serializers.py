@@ -29,6 +29,7 @@ class TagSerializer(serializers.ModelSerializer):
 
 class IngredientSerializer(serializers.ModelSerializer):
     """Сериализатор ингредиентов."""
+    id = serializers.IntegerField()
     amount = serializers.IntegerField(write_only=True)
 
     class Meta:
@@ -85,10 +86,6 @@ class Base64ImageField(serializers.ImageField):
 class RecipeSerializer(serializers.ModelSerializer):
     """Сериализатор чтения рецептов."""
     author = UserSerializer(required=False)
-    # Убрал read_only, появилась ошибка из-за разницы форматов, чтение - dict,
-    # запись - list. Пришлось разнести сериализатор рецептов на два
-    # и переопределить ответы в методах .create() и update() вьюсета.
-    # Кажется получилось громоздко
     tags = TagSerializer(many=True)
     ingredients = IngredientSerializer(many=True)
     is_favorited = serializers.SerializerMethodField()
@@ -125,10 +122,7 @@ class RecipeWriteSerializer(RecipeSerializer):
         queryset=Tag.objects.all(), many=True)
 
     def validate(self, data):
-        # В data из вложенного сериализатора возвращается только
-        # поле amount, отстальные из-за read_only отбрасываются,
-        # поэтому достаем из request
-        ingredients = self.context['request'].data.get('ingredients')
+        ingredients = data.get('ingredients')
 
         for ingredient in ingredients:
             ingredient_id = ingredient.get('id')
@@ -141,8 +135,6 @@ class RecipeWriteSerializer(RecipeSerializer):
             if int(amount) < MIN_VALUE:
                 raise serializers.ValidationError(
                     'Количество должно быть больше 0.')
-
-        data['ingredients'] = ingredients
 
         return super().validate(data)
 
