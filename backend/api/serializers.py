@@ -13,6 +13,7 @@ from users.models import User
 
 MIN_VALUE = settings.MIN_VALUE  # Минимальное количество ингредиента
 REGEX_USERNAME = settings.REGEX_USERNAME
+# Количество рецептов в подписках
 DEFAULT_RECIPES_LIMIT = settings.DEFAULT_RECIPES_LIMIT
 MAX_LEN_USERNAME = settings.MAX_LEN_USERNAME
 MAX_LEN_EMAIL = settings.MAX_LEN_EMAIL
