@@ -23,12 +23,10 @@ class RecipeFilterSet(django_filters.FilterSet):
         field_name='recipe_tag__tag__slug',
         to_field_name='slug',
         queryset=Tag.objects.all())
-    author = django_filters.NumberFilter(
-        field_name='author')
 
     class Meta:
         model = Recipe
-        fields = []
+        fields = ['tags', 'author']
 
     def filter_is_in_shopping_cart(self, queryset, name, is_in_shopping_cart):
         if bool(is_in_shopping_cart):
