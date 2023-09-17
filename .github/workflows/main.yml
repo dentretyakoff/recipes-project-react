@@ -3,7 +3,9 @@ name: Main Foodgram workflow
 on:
   push:
     branches:
-      - master
+    # Успешно задеплоил и остановил,
+    # для отправки на ревью без лишних каталогов.
+      - stop_CI
 
 jobs:
   tests:
