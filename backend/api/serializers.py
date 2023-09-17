@@ -11,6 +11,8 @@ from api.utils import create_recipe_ingredient_relation
 from recipes.models import Ingredient, Recipe, Tag
 from users.models import User
 
+# Минимальное время приготовления, для валидатора в модели Recipe
+MIN_COOKING_TIME = settings.MIN_COOKING_TIME
 MIN_VALUE = settings.MIN_VALUE  # Минимальное количество ингредиента
 REGEX_USERNAME = settings.REGEX_USERNAME
 # Количество рецептов в подписках
@@ -124,18 +126,31 @@ class RecipeWriteSerializer(RecipeSerializer):
 
     def validate(self, data):
         ingredients = data.get('ingredients')
+        unique_ingredients = {}
+
+        if not data.get('tags'):
+            raise serializers.ValidationError(
+                    'Укажите хотя бы один тег.')
+
+        if not ingredients:
+            raise serializers.ValidationError(
+                    'Укажите хотя бы один ингредиент.')
 
         for ingredient in ingredients:
             ingredient_id = ingredient.get('id')
             amount = ingredient.get('amount')
             if ingredient_id is None:
                 raise serializers.ValidationError('Укажите id ингредиента.')
+            if ingredient_id in unique_ingredients:
+                raise serializers.ValidationError(
+                    'Нельзя добавить ингредиент дважды.')
             if amount is None:
                 raise serializers.ValidationError(
                     'Поле amount обязательно для заполнения.')
             if int(amount) < MIN_VALUE:
                 raise serializers.ValidationError(
                     'Количество должно быть больше 0.')
+            unique_ingredients[ingredient_id] = amount
 
         return super().validate(data)
 

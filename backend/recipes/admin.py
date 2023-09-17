@@ -9,12 +9,14 @@ from users.models import Follow
 class RecipeIngredientInline(admin.TabularInline):
     model = RecipeIngredient
     extra = 0
+    min_num = 1
     fields = ('ingredient', 'amount')
 
 
 class RecipeTagInline(admin.TabularInline):
     model = RecipeTag
     extra = 0
+    min_num = 1
     fields = ('tag',)
 
 
@@ -44,7 +46,7 @@ class TagAdmin(admin.ModelAdmin):
 class IngredientAdmin(ImportExportModelAdmin):
     list_display = ('id', 'name', 'measurement_unit')
     list_filter = ('name',)
-    ordering = ['name']
+    ordering = ('name',)
 
 
 @admin.register(RecipeIngredient)

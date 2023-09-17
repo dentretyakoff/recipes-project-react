@@ -53,7 +53,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
     ordering = ('-id',)
 
     def get_serializer_class(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+        if self.action in ('create', 'update', 'partial_update', 'destroy'):
             return RecipeWriteSerializer
         return self.serializer_class
 
@@ -76,7 +76,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
         return Response(response_serializer.data,
                         status=status.HTTP_200_OK)
 
-    @action(detail=True, methods=['post', 'delete'])
+    @action(detail=True, methods=('post', 'delete'))
     def shopping_cart(self, request, pk) -> Response:
         """Добавляет/удаляет рецепт в корзине."""
         recipe = get_object_or_404(Recipe, id=pk)
@@ -100,7 +100,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                                      model=ShoppingCart, message=message)
             return response
 
-    @action(detail=True, methods=['post', 'delete'])
+    @action(detail=True, methods=('post', 'delete'))
     def favorite(self, request, pk):
         """Добавляет/удаляет рецепт в избранном."""
         recipe = get_object_or_404(Recipe, id=pk)
@@ -124,7 +124,7 @@ class RecipeViewSet(viewsets.ModelViewSet):
                                      model=Favorite, message=message)
             return response
 
-    @action(detail=False, methods=['get'])
+    @action(detail=False, methods=('get',))
     def download_shopping_cart(self, request):
         ingr_list = {}
         user = request.user
@@ -165,7 +165,7 @@ class CustomUserViewSet(DjoserUserViewSet):
 
         return pagination.get_paginated_response(serializer.data)
 
-    @action(detail=True, methods=['post', 'delete'])
+    @action(detail=True, methods=('post', 'delete'))
     def subscribe(self, request, id) -> Response:
         """Создает/удаляет подписку на автора."""
         author = get_object_or_404(User, id=id)
@@ -189,7 +189,7 @@ class CustomUserViewSet(DjoserUserViewSet):
                                      model=Follow, message=message)
             return response
 
-    @action(detail=False, methods=['get'],
+    @action(detail=False, methods=('get',),
             permission_classes=(IsAuthenticated,))
     def me(self, request):
         """Переопределил me для ограничения до метода GET."""

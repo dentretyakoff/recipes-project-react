@@ -6,6 +6,7 @@ from recipes.models import Recipe, Tag
 
 class IngredientSearch(filters.BaseFilterBackend):
     """Поиск по ингредиентам."""
+
     def filter_queryset(self, request, queryset, view):
         ingredient = request.query_params.get('name')
         if ingredient:
@@ -26,7 +27,7 @@ class RecipeFilterSet(django_filters.FilterSet):
 
     class Meta:
         model = Recipe
-        fields = ['tags', 'author']
+        fields = ('tags', 'author')
 
     def filter_is_in_shopping_cart(self, queryset, name, is_in_shopping_cart):
         if bool(is_in_shopping_cart):
