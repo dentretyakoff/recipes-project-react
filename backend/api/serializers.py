@@ -133,7 +133,7 @@ class RecipeWriteSerializer(RecipeSerializer):
 
         if not ingredients:
             raise serializers.ValidationError(
-                    'Укажите хотя бы один ингредиент.')
+                'Укажите хотя бы один ингредиент.')
 
         for ingredient in ingredients:
             ingredient_id = ingredient.get('id')
