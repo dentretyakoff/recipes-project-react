@@ -129,8 +129,7 @@ class RecipeWriteSerializer(RecipeSerializer):
         unique_ingredients = {}
 
         if not data.get('tags'):
-            raise serializers.ValidationError(
-                    'Укажите хотя бы один тег.')
+            raise serializers.ValidationError('Укажите хотя бы один тег.')
 
         if not ingredients:
             raise serializers.ValidationError(
