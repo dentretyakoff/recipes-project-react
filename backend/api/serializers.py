@@ -75,6 +75,11 @@ class UserCreateSerializer(DjoserUserCreateSerializer):
             'id', 'email', 'username', 'first_name',
             'last_name', 'password')
 
+    def validate(self, data):
+        if User.objects.filter(email=data.get('email')).exists():
+            raise serializers.ValidationError('Email уже занят.')
+        return super().validate(data)
+
 
 class Base64ImageField(serializers.ImageField):
     def to_internal_value(self, data):
@@ -126,9 +131,15 @@ class RecipeWriteSerializer(RecipeSerializer):
 
     def validate(self, data):
         ingredients = data.get('ingredients')
+        tags = data.get('tags')
         unique_ingredients = {}
+        request = self.context.get('request')
 
-        if not data.get('tags'):
+        if request.method == 'PATCH' and request.user != self.instance.author:
+            raise serializers.ValidationError(
+                'Вы не являетесь автором рецепта.')
+
+        if not tags:
             raise serializers.ValidationError('Укажите хотя бы один тег.')
 
         if not ingredients:
@@ -143,6 +154,9 @@ class RecipeWriteSerializer(RecipeSerializer):
             if ingredient_id in unique_ingredients:
                 raise serializers.ValidationError(
                     'Нельзя добавить ингредиент дважды.')
+            if not Ingredient.objects.filter(pk=ingredient_id).exists():
+                raise serializers.ValidationError(
+                    f'Ингредиент c id:{ingredient_id} не существует.')
             if amount is None:
                 raise serializers.ValidationError(
                     'Поле amount обязательно для заполнения.')
@@ -150,6 +164,9 @@ class RecipeWriteSerializer(RecipeSerializer):
                 raise serializers.ValidationError(
                     'Количество должно быть больше 0.')
             unique_ingredients[ingredient_id] = amount
+
+        if len(set(tags)) != len(tags):
+            raise serializers.ValidationError('Уберите дублирующиеся теги.')
 
         return super().validate(data)
 
