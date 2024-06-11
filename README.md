@@ -1,19 +1,16 @@
-# Foodgram
-https://foodgram.kittygramx.space
-admin
-AKSJDHGkjaghsdhg123!@#!
+# Recipes
 
 ### Описание 
-Foodgram - это интернет-сервис, который позволяет пользователям делиться рецептами.
+Recipes - это интернет-сервис, который позволяет пользователям делиться рецептами.
 
-### Функционал Foodgram
+### Функционал Recipes
 - Просмотр рецептов;
 - Добавление, обновление и удаление рецептов;
 - Добавление рецептов в список избранного;
 - Добавление рецептов в корзину покупок, получение списка покупок.
 - Подписка на авторов рецептов.
 - Фильтрация рецептов по тегам.
-- Регистрация для получения полного доступа к возможностям Foodgram.
+- Регистрация для получения полного доступа к возможностям Recipes.
 
 ### Технологии
 #### Backend
@@ -36,21 +33,21 @@ Foodgram - это интернет-сервис, который позволяе
 - Установите `sudo apt install nginx` и настройте веб-сервер, пример конфигурации:
     ```
     server {
-        server_name foodgram.dev;
+        server_name recipes.dev;
         location / {
         proxy_pass http://127.0.0.1:8000;
         }
     }
     ```
-- В домашней директории пользователя создайте каталог `foodgram`
-- Создайте в `~/foodgram` файл .env и запишите в него необходимые переменные окружения:
-    - `POSTGRES_USER=foodgram_user`
-    - `POSTGRES_PASSWORD=foodgram_password`
-    - `POSTGRES_DB=foodgram`
+- В домашней директории пользователя создайте каталог `recipes`
+- Создайте в `~/recipes` файл .env и запишите в него необходимые переменные окружения:
+    - `POSTGRES_USER=recipes_user`
+    - `POSTGRES_PASSWORD=recipes_password`
+    - `POSTGRES_DB=recipes`
     - `DB_HOST=db`
     - `DB_PORT=5432`
     - `SECRET_KEY=Super_secret_key`
-- Скопируйте в `~/foodgram` файл `docker-compose.production.yml`
+- Скопируйте в `~/recipes` файл `docker-compose.production.yml`
 - Запустите приложение в контейнерах
     ```
     sudo docker compose -f docker-compose.production.yml up -d

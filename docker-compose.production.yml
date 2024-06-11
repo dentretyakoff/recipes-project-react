@@ -13,11 +13,11 @@ services:
     volumes:
       - pg_data:/var/lib/postgresql/data
   frontend:
-    image: dentretyakoff/foodgram_frontend
+    image: dentretyakoff/recipes_frontend
     volumes:
       - ./frontend/:/app/result_build/
   backend:
-    image: dentretyakoff/foodgram_backend
+    image: dentretyakoff/recipes_backend
     env_file: .env
     volumes:
       - static_django:/backend_static
@@ -29,14 +29,13 @@ services:
         python manage.py migrate &&
         python manage.py collectstatic --noinput &&
         cp -r /app/collected_static/. /backend_static/ &&
-        gunicorn --bind 0.0.0.0:8000 foodgram_backend.wsgi"
+        gunicorn --bind 0.0.0.0:8000 core.wsgi"
   nginx:
-    image: dentretyakoff/foodgram_nginx
+    image: dentretyakoff/recipes_nginx
     ports:
       - 8000:80
     volumes:
       - ./frontend/build:/usr/share/nginx/html/
-      # - ../docs/:/usr/share/nginx/html/api/docs/
       - static_django:/backend_static/
       - media:/media_files
     depends_on:

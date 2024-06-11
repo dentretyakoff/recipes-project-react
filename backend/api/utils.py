@@ -28,7 +28,7 @@ def make_file(data: dict) -> HttpResponse:
     response['Content-Disposition'] = 'attachment; filename="ingredients.txt"'
     cur_datetime = datetime.now().strftime('%d-%m-%Y %H:%M:%S')
 
-    response.write(f'Foodgram список ингредиентов.\t{cur_datetime}\n')
+    response.write(f'Recipes список ингредиентов.\t{cur_datetime}\n')
     for name, amount in data.items():
         response.write(
             f'{name}:\t{amount}\n')
